@@ -4,7 +4,9 @@ const pkg = require('./package');
 
 readline.emitKeypressEvents(process.stdin);
 function enableRawMode(){
-  process.stdin.setRawMode(true);
+  if(process.stdin.isTTY){
+    process.stdin.setRawMode(true);
+  }
 }
 
 function editorRefreshScreen(){
@@ -12,7 +14,7 @@ function editorRefreshScreen(){
   process.stdout.write("\x1b[H", 3);
   editorDrawRows();
   process.stdout.write("\x1b[H", 3);
-  process.stdout.write("\x1b[?25l", 6);
+  process.stdout.write("\x1b[?25h", 6);
 }
 
 function editorReadKey(str, key) {
