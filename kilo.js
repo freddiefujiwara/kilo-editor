@@ -1,9 +1,13 @@
 #!/bin/env node
 const readline = require('readline');
 const pkg = require('./package');
+const fs = require('fs')
+const os = require('os')
 let cx = 0;
 let cy = 0;
 let abuf = '';
+let erow = '';
+let rowoff = 0;
 
 readline.emitKeypressEvents(process.stdin);
 function enableRawMode(){
@@ -12,11 +16,30 @@ function enableRawMode(){
   }
 }
 
+function disableRawMode(){
+  if(process.stdin.isTTY){
+    process.stdin.setRawMode(false);
+  }
+}
+
+function editorOpen(file){
+  erow = fs.readFileSync(file, 'utf8').trim().split(os.EOL);
+}
+function editorScroll() {
+  if (cy < rowoff) {
+    rowoff = cy;
+  }
+  if (cy >= rowoff + process.stdout.rows) {
+    rowoff = cy - process.stdout.rows + 1;
+  }
+}
+
 function editorRefreshScreen(){
+  editorScroll();
   abuf += "\x1b[?25l";
   abuf += "\x1b[H";
   editorDrawRows();
-  const buf = `\x1b[${cy+1};${cx+1}H`;
+  const buf = `\x1b[${(cy - rowoff) + 1};${cx + 1}H`;
   abuf += buf;
   abuf += "\x1b[?25h";
   abuf += "\x1b[?25h";
@@ -31,6 +54,7 @@ function editorReadKey(str, key) {
         abuf = '';
         process.stdout.write("\x1b[2J",4);
         process.stdout.write("\x1b[H",3);
+        disableRawMode();
         process.exit();
       }
       break;
@@ -74,26 +98,33 @@ function editorMoveCursor(key) {
       break;
     case 'j':
     case 'down':
-      if(cy < process.stdout.rows - 1) cy++;
+      if(cy < erow.length) cy++;
       break;
   }
 }
 
 function editorDrawRows() {
   for (let y = 0; y < process.stdout.rows ; y++) {
-    if (y == parseInt(process.stdout.rows / 3)) {
-      const welcome = `Kilo editor -- version ${pkg.version}`;
-      let welcomlen = welcome.length;
-      if (welcomlen > process.stdout.columns) welcomlen = process.stdout.columns;
-      let padding = parseInt((process.stdout.columns - welcomlen) / 2);
-      if (padding > 0) {
+    let filerow = y + rowoff;
+    if (filerow >= erow.length) {
+      if (erow.length == 0 && y == parseInt(process.stdout.rows / 3)) {
+        const welcome = `Kilo editor -- version ${pkg.version}`;
+        let welcomlen = welcome.length;
+        if (welcomlen > process.stdout.columns) welcomlen = process.stdout.columns;
+        let padding = parseInt((process.stdout.columns - welcomlen) / 2);
+        if (padding > 0) {
+          abuf += "~";
+          padding--;
+        }
+        while (padding-- > 0)abuf += " ";
+        abuf += welcome;
+      } else {
         abuf += "~";
-        padding--;
       }
-      while (padding-- > 0)abuf += " ";
-      abuf += welcome;
     } else {
-      abuf += "~";
+      let len = erow[filerow].length;
+      if(len > process.stdout.columns) len = process.stdout.columns;
+      abuf += erow[filerow];
     }
     abuf += "\x1b[K";
     if (y < process.stdout.rows - 1) {
@@ -104,6 +135,10 @@ function editorDrawRows() {
 
 function main(){
   enableRawMode();
+  const args = process.argv.slice(2);
+  if(args.length > 0){
+    editorOpen(args[0]);
+  }
   editorRefreshScreen();
   process.stdin.on('keypress', editorReadKey);
 }
