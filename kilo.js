@@ -47,7 +47,6 @@ function editorMoveCursor(key) {
       break;
     case 'k':
       if(cy > 0) cy--;
-      cy--;
       break;
     case 'j':
       if(cy < process.stdout.rows - 1) cy++;
