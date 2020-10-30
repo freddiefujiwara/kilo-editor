@@ -9,13 +9,21 @@ function enableRawMode(){
 function editorRefreshScreen(){
   process.stdout.write("\x1b[2J", 4);
   process.stdout.write("\x1b[H", 3);
+  editorDrawRows();
+  process.stdout.write("\x1b[H", 3);
 }
 
 function editorReadKey(str, key) {
   if (key.ctrl && key.name === 'q') {
     process.exit();
   }
-};
+}
+
+function editorDrawRows() {
+  for (let y = 0; y < process.stdout.rows - 1 ; y++) {
+    process.stdout.write("~\r\n", 3);
+  }
+}
 
 function main(){
   enableRawMode();
