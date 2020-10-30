@@ -3,6 +3,7 @@ const readline = require('readline');
 const pkg = require('./package');
 let cx = 0;
 let cy = 0;
+let abuf = '';
 
 readline.emitKeypressEvents(process.stdin);
 function enableRawMode(){
@@ -12,43 +13,67 @@ function enableRawMode(){
 }
 
 function editorRefreshScreen(){
-  process.stdout.write("\x1b[?25l", 6);
-  process.stdout.write("\x1b[H", 3);
+  abuf += "\x1b[?25l";
+  abuf += "\x1b[H";
   editorDrawRows();
   const buf = `\x1b[${cy+1};${cx+1}H`;
-  process.stdout.write(buf, buf.length);
-  process.stdout.write("\x1b[?25h", 6);
+  abuf += buf;
+  abuf += "\x1b[?25h";
+  abuf += "\x1b[?25h";
+  process.stdout.write(abuf, abuf.length);
+  abuf = '';
 }
 
 function editorReadKey(str, key) {
-  editorRefreshScreen();
-  if (key.ctrl && key.name === 'q') {
-    process.stdout.write("\x1b[2J", 4);
-    process.stdout.write("\x1b[H", 3);
-    process.exit();
-    return;
-  }
   switch(key.name){
+    case 'q':
+      if (key.ctrl){
+        abuf = '';
+        process.stdout.write("\x1b[2J",4);
+        process.stdout.write("\x1b[H",3);
+        process.exit();
+      }
+      break;
+    case 'home':
+      cx = 0;
+      break;
+    case 'end':
+      cx = process.stdout.columns - 1;
+      break;
+    case 'pageup':
+    case 'pagedown':
+      let times = process.stdout.rows;
+      while(times--) editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
+      break;
     case 'h':
+    case 'right':
     case 'l':
-    case 'j':
+    case 'left':
     case 'k':
+    case 'up':
+    case 'j':
+    case 'down':
       editorMoveCursor(key.name);
   }
+  editorRefreshScreen();
 }
 
 function editorMoveCursor(key) {
   switch (key) {
     case 'h':
+    case 'right':
       if(cx > 0) cx--;
       break;
     case 'l':
+    case 'left':
       if(cx < process.stdout.columns - 1) cx++;
       break;
     case 'k':
+    case 'up':
       if(cy > 0) cy--;
       break;
     case 'j':
+    case 'down':
       if(cy < process.stdout.rows - 1) cy++;
       break;
   }
@@ -62,17 +87,17 @@ function editorDrawRows() {
       if (welcomlen > process.stdout.columns) welcomlen = process.stdout.columns;
       let padding = parseInt((process.stdout.columns - welcomlen) / 2);
       if (padding > 0) {
-        process.stdout.write("~", 1);
+        abuf += "~";
         padding--;
       }
-      while (padding-- > 0)process.stdout.write(" ", 1);
-      process.stdout.write(welcome,welcomlen);
+      while (padding-- > 0)abuf += " ";
+      abuf += welcome;
     } else {
-      process.stdout.write("~", 1);
+      abuf += "~";
     }
-    process.stdout.write("\x1b[K", 3);
+    abuf += "\x1b[K";
     if (y < process.stdout.rows - 1) {
-      process.stdout.write("\r\n", 2);
+      abuf += "\r\n";
     }
   }
 }
