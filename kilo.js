@@ -8,6 +8,8 @@ let cy = 0;
 let abuf = '';
 let erow = '';
 let rowoff = 0;
+let screenrows = process.stdout.rows;
+let screencols = process.stdout.columns;
 
 readline.emitKeypressEvents(process.stdin);
 function enableRawMode(){
@@ -29,8 +31,8 @@ function editorScroll() {
   if (cy < rowoff) {
     rowoff = cy;
   }
-  if (cy >= rowoff + process.stdout.rows) {
-    rowoff = cy - process.stdout.rows + 1;
+  if (cy >= rowoff + screenrows) {
+    rowoff = cy - screenrows + 1;
   }
 }
 
@@ -62,11 +64,11 @@ function editorReadKey(str, key) {
       cx = 0;
       break;
     case 'end':
-      cx = process.stdout.columns - 1;
+      cx = screencols - 1;
       break;
     case 'pageup':
     case 'pagedown':
-      let times = process.stdout.rows;
+      let times = screenrows;
       while(times--) editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
       break;
     case 'h':
@@ -90,7 +92,7 @@ function editorMoveCursor(key) {
       break;
     case 'l':
     case 'left':
-      if(cx < process.stdout.columns - 1) cx++;
+      if(cx < screencols - 1) cx++;
       break;
     case 'k':
     case 'up':
@@ -104,14 +106,14 @@ function editorMoveCursor(key) {
 }
 
 function editorDrawRows() {
-  for (let y = 0; y < process.stdout.rows ; y++) {
+  for (let y = 0; y < screenrows ; y++) {
     let filerow = y + rowoff;
     if (filerow >= erow.length) {
-      if (erow.length == 0 && y == parseInt(process.stdout.rows / 3)) {
+      if (erow.length == 0 && y == parseInt(screenrows / 3)) {
         const welcome = `Kilo editor -- version ${pkg.version}`;
         let welcomlen = welcome.length;
-        if (welcomlen > process.stdout.columns) welcomlen = process.stdout.columns;
-        let padding = parseInt((process.stdout.columns - welcomlen) / 2);
+        if (welcomlen > screencols) welcomlen = screencols;
+        let padding = parseInt((screencols - welcomlen) / 2);
         if (padding > 0) {
           abuf += "~";
           padding--;
@@ -123,11 +125,11 @@ function editorDrawRows() {
       }
     } else {
       let len = erow[filerow].length;
-      if(len > process.stdout.columns) len = process.stdout.columns;
+      if(len > screencols) len = screencols;
       abuf += erow[filerow];
     }
     abuf += "\x1b[K";
-    if (y < process.stdout.rows - 1) {
+    if (y < screenrows - 1) {
       abuf += "\r\n";
     }
   }
