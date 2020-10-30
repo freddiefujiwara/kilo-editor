@@ -1,6 +1,8 @@
 #!/bin/env node
 const readline = require('readline');
 const pkg = require('./package');
+let cx = 0;
+let cy = 0;
 
 readline.emitKeypressEvents(process.stdin);
 function enableRawMode(){
@@ -13,8 +15,6 @@ function editorRefreshScreen(){
   process.stdout.write("\x1b[?25l", 6);
   process.stdout.write("\x1b[H", 3);
   editorDrawRows();
-  let cx = 0;
-  let cy = 0;
   const buf = `\x1b[${cy+1};${cx+1}H`;
   process.stdout.write(buf, buf.length);
   process.stdout.write("\x1b[?25h", 6);
@@ -26,6 +26,32 @@ function editorReadKey(str, key) {
     process.stdout.write("\x1b[2J", 4);
     process.stdout.write("\x1b[H", 3);
     process.exit();
+    return;
+  }
+  switch(key.name){
+    case 'h':
+    case 'l':
+    case 'j':
+    case 'k':
+      editorMoveCursor(key.name);
+  }
+}
+
+function editorMoveCursor(key) {
+  switch (key) {
+    case 'h':
+      if(cx > 0) cx--;
+      break;
+    case 'l':
+      if(cx < process.stdout.columns - 1) cx++;
+      break;
+    case 'k':
+      if(cy > 0) cy--;
+      cy--;
+      break;
+    case 'j':
+      if(cy < process.stdout.rows - 1) cy++;
+      break;
   }
 }
 
