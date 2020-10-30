@@ -13,11 +13,15 @@ function editorRefreshScreen(){
   process.stdout.write("\x1b[?25l", 6);
   process.stdout.write("\x1b[H", 3);
   editorDrawRows();
-  process.stdout.write("\x1b[H", 3);
+  let cx = 0;
+  let cy = 0;
+  const buf = `\x1b[${cy+1};${cx+1}H`;
+  process.stdout.write(buf, buf.length);
   process.stdout.write("\x1b[?25h", 6);
 }
 
 function editorReadKey(str, key) {
+  editorRefreshScreen();
   if (key.ctrl && key.name === 'q') {
     process.stdout.write("\x1b[2J", 4);
     process.stdout.write("\x1b[H", 3);
@@ -36,10 +40,7 @@ function editorDrawRows() {
         process.stdout.write("~", 1);
         padding--;
       }
-      while (padding > 0){
-        process.stdout.write(" ", 1);
-        padding--;
-      }
+      while (padding-- > 0)process.stdout.write(" ", 1);
       process.stdout.write(welcome,welcomlen);
     } else {
       process.stdout.write("~", 1);
