@@ -1,0 +1,25 @@
+{
+  "name": "kilojs",
+  "version": "1.0.0",
+  "description": "JavaScript port for kilo.c",
+  "main": "kilo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freddiefujiwara/kilojs.git"
+  },
+  "keywords": [
+    "JavaScript"
+  ],
+  "author": "Fumikazu Fujiwara <github@ze.gs>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/freddiefujiwara/kilojs/issues"
+  },
+  "homepage": "https://github.com/freddiefujiwara/kilojs#readme",
+  "dependencies": {
+    "readline": "^1.3.0"
+  }
+}
