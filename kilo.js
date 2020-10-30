@@ -1,4 +1,5 @@
 #!/bin/env node
+
 const readline = require('readline');
 const pkg = require('./package');
 const fs = require('fs')
@@ -12,21 +13,23 @@ let screenrows = process.stdout.rows;
 let screencols = process.stdout.columns;
 
 readline.emitKeypressEvents(process.stdin);
-function enableRawMode(){
-  if(process.stdin.isTTY){
+
+function enableRawMode() {
+  if (process.stdin.isTTY) {
     process.stdin.setRawMode(true);
   }
 }
 
-function disableRawMode(){
-  if(process.stdin.isTTY){
+function disableRawMode() {
+  if (process.stdin.isTTY) {
     process.stdin.setRawMode(false);
   }
 }
 
-function editorOpen(file){
+function editorOpen(file) {
   erow = fs.readFileSync(file, 'utf8').trim().split(os.EOL);
 }
+
 function editorScroll() {
   if (cy < rowoff) {
     rowoff = cy;
@@ -36,7 +39,7 @@ function editorScroll() {
   }
 }
 
-function editorRefreshScreen(){
+function editorRefreshScreen() {
   editorScroll();
   abuf += "\x1b[?25l";
   abuf += "\x1b[H";
@@ -50,12 +53,12 @@ function editorRefreshScreen(){
 }
 
 function editorReadKey(str, key) {
-  switch(key.name){
+  switch (key.name) {
     case 'q':
-      if (key.ctrl){
+      if (key.ctrl) {
         abuf = '';
-        process.stdout.write("\x1b[2J",4);
-        process.stdout.write("\x1b[H",3);
+        process.stdout.write("\x1b[2J", 4);
+        process.stdout.write("\x1b[H", 3);
         disableRawMode();
         process.exit();
       }
@@ -69,7 +72,7 @@ function editorReadKey(str, key) {
     case 'pageup':
     case 'pagedown':
       let times = screenrows;
-      while(times--) editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
+      while (times--) editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
       break;
     case 'h':
     case 'right':
@@ -88,25 +91,25 @@ function editorMoveCursor(key) {
   switch (key) {
     case 'h':
     case 'right':
-      if(cx > 0) cx--;
+      if (cx > 0) cx--;
       break;
     case 'l':
     case 'left':
-      if(cx < screencols - 1) cx++;
+      if (cx < screencols - 1) cx++;
       break;
     case 'k':
     case 'up':
-      if(cy > 0) cy--;
+      if (cy > 0) cy--;
       break;
     case 'j':
     case 'down':
-      if(cy < erow.length) cy++;
+      if (cy < erow.length) cy++;
       break;
   }
 }
 
 function editorDrawRows() {
-  for (let y = 0; y < screenrows ; y++) {
+  for (let y = 0; y < screenrows; y++) {
     let filerow = y + rowoff;
     if (filerow >= erow.length) {
       if (erow.length == 0 && y == parseInt(screenrows / 3)) {
@@ -118,14 +121,14 @@ function editorDrawRows() {
           abuf += "~";
           padding--;
         }
-        while (padding-- > 0)abuf += " ";
+        while (padding-- > 0) abuf += " ";
         abuf += welcome;
       } else {
         abuf += "~";
       }
     } else {
       let len = erow[filerow].length;
-      if(len > screencols) len = screencols;
+      if (len > screencols) len = screencols;
       abuf += erow[filerow];
     }
     abuf += "\x1b[K";
@@ -135,10 +138,10 @@ function editorDrawRows() {
   }
 }
 
-function main(){
+function main() {
   enableRawMode();
   const args = process.argv.slice(2);
-  if(args.length > 0){
+  if (args.length > 0) {
     editorOpen(args[0]);
   }
   editorRefreshScreen();
