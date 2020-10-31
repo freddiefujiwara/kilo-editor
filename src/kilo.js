@@ -18,7 +18,6 @@ class Kilo {
    * <li>initialize all E</li>
    * <li>set timeout after 5 sec statusmsg will be dismissed</li>
    * </ul>
-   * @property
    */
   constructor(argv) {
     readline.emitKeypressEvents(process.stdin);
@@ -82,7 +81,6 @@ class Kilo {
    * <li>set erow // editor low</li>
    * <li>set render // for rendering low</li>
    * </ul>
-   * @property
    * @throws {Error: ENOENT}
    *
    */
@@ -99,7 +97,6 @@ class Kilo {
    * <li>- treat \t</li>
    * <li>- treat unicode multibyte characters</li>
    * </ul>
-   * @property
    * @returns {int} rx - rx position
    * @todo handle multibyte properly 
    */
@@ -125,7 +122,6 @@ class Kilo {
    * <li>handle rowoff</li>
    * <li>handle coloff</li>
    * </ul>
-   * @property
    *
    */
   editorScroll() {
@@ -159,7 +155,6 @@ class Kilo {
    * <li>set cursor proper position (rx,cy)</li>
    * <li>show cursor</li>
    * </ul>
-   * @property
    *
    */
   editorRefreshScreen() {
