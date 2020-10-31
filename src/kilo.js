@@ -11,7 +11,7 @@ const MULTI_BYTE = 2;
 class Kilo {
   /**
    * @constructor
-   * @desc 
+   * @desc
    * <ul>
    * <li>initialize all E</li>
    * <li>this.buf = ''</li>
@@ -45,8 +45,8 @@ class Kilo {
    */
   die(e,status){
     this.abuf = '';
-    process.stdout.write("\x1b[2J", 4);
-    process.stdout.write("\x1b[H", 3);
+    process.stdout.cursorTo(0,0);
+    process.stdout.clearScreenDown();
     this.disableRawMode();
     console.error(e);
     process.exit(status || 1);
@@ -75,8 +75,8 @@ class Kilo {
 
   /**
    * open this.E.filename
-   * 
-   * @desc 
+   *
+   * @desc
    * <ul>
    * <li>set erow // editor low</li>
    * <li>set render // for rendering low</li>
@@ -91,14 +91,14 @@ class Kilo {
 
   /**
    * calculate erow cx -> rx
-   * 
-   * @desc 
+   *
+   * @desc
    * <ul>
    * <li>- treat \t</li>
    * <li>- treat unicode multibyte characters</li>
    * </ul>
    * @returns {int} rx - rx position
-   * @todo handle multibyte properly 
+   * @todo handle multibyte properly
    */
   editorRowCxToRx(row,  cx) {
     let rx = 0;
@@ -117,7 +117,7 @@ class Kilo {
   /**
    * calculate scrolling offset
    *
-   * @desc 
+   * @desc
    * <ul>
    * <li>handle rowoff</li>
    * <li>handle coloff</li>
@@ -146,7 +146,7 @@ class Kilo {
   /**
    * refresh screen
    *
-   * @desc 
+   * @desc
    * <ul>
    * <li>hide cursor</li>
    * <li>draw rows (file contents)</li>
@@ -159,13 +159,13 @@ class Kilo {
    */
   editorRefreshScreen() {
     this.editorScroll();
-    this.abuf += "\x1b[?25l";
-    this.abuf += "\x1b[H";
+    this.abuf += "\x1b[?25l"; // hide cursor
+    this.abuf += "\x1b[H";    // set ursor 0,0
     this.editorDrawRows();
     this.editorDrawStatusBar();
     this.editorDrawMessageBar();
-    this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${(this.E.rx - this.E.coloff) + 1}H`; //cursor
-    this.abuf += "\x1b[?25h";
+    this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${(this.E.rx - this.E.coloff) + 1}H`; // set cursor position
+    this.abuf += "\x1b[?25h"; // show cursor
     process.stdout.write(this.abuf, this.abuf.length);
     this.abuf = '';
   }
@@ -260,7 +260,7 @@ class Kilo {
    * drow status bar
    */
   editorDrawStatusBar() {
-    this.abuf += "\x1b[7m";
+    this.abuf += "\x1b[7m"; // invert the colors. (usually black -> white)
     const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines`;
     let len = status.length;
     const rstatus = `${this.E.cy + 1}/${this.E.erow.length}`;
@@ -275,7 +275,7 @@ class Kilo {
         len++;
       }
     }
-    this.abuf += "\x1b[m";
+    this.abuf += "\x1b[m"; // revert the colors. (usually white -> black)
     this.abuf += os.EOL;
   }
 
@@ -283,7 +283,7 @@ class Kilo {
    * drow message bar
    */
   editorDrawMessageBar() {
-    this.abuf += "\x1b[K";
+    this.abuf += "\x1b[K"; //remove all chars after the cursor position
     this.abuf += this.E.statusmsg.length > this.E.screencols ? this.E.statusmsg.substring(0, this.E.screencols) : this.E.statusmsg;
   }
 
@@ -314,7 +314,7 @@ class Kilo {
         if (len > this.E.screencols) len = this.E.screencols;
         this.abuf += this.E.render[filerow].substring(this.E.coloff, this.E.coloff + len);
       }
-      this.abuf += "\x1b[K";
+      this.abuf += "\x1b[K"; //remove all chars after the cursor position
       this.abuf += os.EOL;
     }
   }
