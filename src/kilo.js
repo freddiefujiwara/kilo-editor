@@ -4,8 +4,11 @@ const fs = require('fs')
 const os = require('os')
 
 class Kilo {
-  constructor(){
+  constructor(argv){
     readline.emitKeypressEvents(process.stdin);
+    if(argv && argv.length>0){
+      this.file = argv[0];
+    }
     this.E = {
       cx : 0,
       cy : 0,
@@ -28,8 +31,8 @@ class Kilo {
     }
   }
 
-  editorOpen(file) {
-    this.E.erow = fs.readFileSync(file, 'utf8').trim().split(os.EOL);
+  editorOpen() {
+    this.E.erow = fs.readFileSync(this.file, 'utf8').trim().split(os.EOL);
   }
 
   editorScroll() {
@@ -138,11 +141,10 @@ class Kilo {
     }
   }
 
-  main(argv) {
+  main() {
     this.enableRawMode();
-    const args = argv.slice(2);
-    if (args.length > 0) {
-      this.editorOpen(args[0]);
+    if (this.file !== undefined) {
+      this.editorOpen();
     }
     this.editorRefreshScreen();
     process.stdin.on('keypress', this.editorReadKey.bind(this));
