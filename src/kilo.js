@@ -81,7 +81,7 @@ class Kilo {
    * <li>set erow // editor low</li>
    * <li>set render // for rendering low</li>
    * </ul>
-   * @throws {Error: ENOENT}
+   * @throws {Error} - ENOENT: no such file or directory, open this.filename
    *
    */
   editorOpen() {
