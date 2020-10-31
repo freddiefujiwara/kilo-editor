@@ -1,7 +1,7 @@
 const readline = require('readline');
 const pkg = require('../package');
-const fs = require('fs')
-const os = require('os')
+const fs = require('fs');
+const os = require('os');
 
 class Kilo {
   constructor(argv){
@@ -12,8 +12,9 @@ class Kilo {
     this.E = {
       cx : 0,
       cy : 0,
-      erow : '',
+      erow : [],
       rowoff : 0,
+      coloff : 0,
       screenrows : process.stdout.rows,
       screencols : process.stdout.columns
     };
@@ -28,6 +29,7 @@ class Kilo {
   disableRawMode() {
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(false);
+      process.stdin.resume();
     }
   }
 
@@ -42,6 +44,12 @@ class Kilo {
     if (this.E.cy >= this.E.rowoff + this.E.screenrows) {
       this.E.rowoff = this.E.cy - this.E.screenrows + 1;
     }
+    if (this.E.cx < this.E.coloff) {
+      this.E.coloff = this.E.cx;
+    }
+    if (this.E.cx >= this.E.coloff + this.E.screencols) {
+      this.E.coloff = this.E.cx - this.E.screencols + 1;
+    }
   }
 
   editorRefreshScreen() {
@@ -49,7 +57,7 @@ class Kilo {
     this.abuf += "\x1b[?25l";
     this.abuf += "\x1b[H";
     this.editorDrawRows();
-    this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${this.E.cx + 1}H`; //cursor
+    this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${(this.E.cx - this.E.coloff) + 1}H`; //cursor
     this.abuf += "\x1b[?25h";
     process.stdout.write(this.abuf, this.abuf.length);
     this.abuf = '';
@@ -70,17 +78,22 @@ class Kilo {
         this.E.cx = 0;
         break;
       case 'end':
-        this.E.cx = this.E.screencols - 1;
+        {
+          let times = this.E.screencols;
+          while (times--) this.editorMoveCursor('right');
+        }
         break;
       case 'pageup':
       case 'pagedown':
-        let times = this.E.screenrows;
-        while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
+        {
+          let times = this.E.screenrows;
+          while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
+        }
         break;
       case 'h':
-      case 'right':
-      case 'l':
       case 'left':
+      case 'l':
+      case 'right':
       case 'k':
       case 'up':
       case 'j':
@@ -91,14 +104,15 @@ class Kilo {
   }
 
   editorMoveCursor(key) {
+    let row = (this.E.cy >= this.E.erow.length) ? undefined : this.E.erow[this.E.cy];
     switch (key) {
       case 'h':
-      case 'right':
+      case 'left':
         if (this.E.cx > 0) this.E.cx--;
         break;
       case 'l':
-      case 'left':
-        if (this.E.cx < this.E.screencols - 1) this.E.cx++;
+      case 'right':
+        if(row && this.E.cx < row.length)this.E.cx++;
         break;
       case 'k':
       case 'up':
@@ -108,6 +122,11 @@ class Kilo {
       case 'down':
         if (this.E.cy < this.E.erow.length) this.E.cy++;
         break;
+    }
+    row = (this.E.cy >= this.E.erow.length) ? undefined : this.E.erow[this.E.cy];
+    const rowlen = row ? row.length : 0;
+    if (this.E.cx > rowlen) {
+      this.E.cx = rowlen;
     }
   }
 
@@ -130,9 +149,10 @@ class Kilo {
           this.abuf += "~";
         }
       } else {
-        let len = this.E.erow[filerow].length;
+        let len = this.E.erow[filerow].length - this.E.coloff;
+        if(len < 0) len = 0;
         if (len > this.E.screencols) len = this.E.screencols;
-        this.abuf += this.E.erow[filerow];
+        this.abuf += this.E.erow[filerow].substring(this.E.coloff,this.E.coloff+len);
       }
       this.abuf += "\x1b[K";
       if (y < this.E.screenrows - 1) {

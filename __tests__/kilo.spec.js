@@ -7,7 +7,7 @@ describe('Kilo', () => {
     expect(k).toBeInstanceOf(Kilo);
     expect(k.E.cx).toEqual(0);
     expect(k.E.cy).toEqual(0);
-    expect(k.E.erow).toEqual('');
+    expect(k.E.erow).toEqual([]);
     expect(k.E.rowoff).toEqual(0);
     expect(k.E.erow.length).toEqual(0);
     expect(k.E.screenrows).not.toEqual(0);
@@ -56,14 +56,14 @@ describe('Kilo', () => {
     k.editorReadKey('',{name:'pageup'});
     expect(k.E.cy).toEqual(0);
     // horizontal cursor move
-    k.editorReadKey('',{name:'left'});
+    k.editorReadKey('',{name:'right'});
     expect(k.E.cx).toEqual(1);
     k.editorReadKey('',{name:'end'});
-    expect(k.E.cx).toEqual(39);
+    expect(k.E.cx).toEqual(11);
     k.editorReadKey('',{name:'left'});
-    expect(k.E.cx).toEqual(39);
+    expect(k.E.cx).toEqual(10);
     k.editorReadKey('',{name:'right'});
-    expect(k.E.cx).toEqual(38);
+    expect(k.E.cx).toEqual(11);
     k.editorReadKey('',{name:'home'});
     expect(k.E.cx).toEqual(0);
   });
