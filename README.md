@@ -4,6 +4,12 @@ JavaScript port for [kilo](https://github.com/snaptoken/kilo-src)
 
 <img src="/publish/images/kilo-editor-demo.gif?raw=true" width="640px">
 
+
+# How to install
+```bash
+$ npm -g i kilo-editor
+```
+
 # support environment
 ## os
 - [ubuntu-latest](https://github.com/actions/virtual-environments#available-environments)
