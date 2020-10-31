@@ -2,14 +2,17 @@ const readline = require('readline');
 const pkg = require('../package');
 const fs = require('fs');
 const os = require('os');
+const KILO_TAB_STOP = 8;
 
 class Kilo {
   constructor(argv) {
     readline.emitKeypressEvents(process.stdin);
     this.E = {
       cx: 0,
+      rx: 0,
       cy: 0,
       erow: [],
+      render: [],
       rowoff: 0,
       coloff: 0,
       screenrows: process.stdout.rows - 2,
@@ -35,20 +38,36 @@ class Kilo {
 
   editorOpen() {
     this.E.erow = fs.readFileSync(this.E.filename, 'utf8').trim().split(os.EOL);
+    this.E.render = this.E.erow.map((str) => str.replace(/\t/g," ".repeat(KILO_TAB_STOP)));
+  }
+
+  editorRowCxToRx(row,  cx) {
+    let rx = 0;
+    let  j;
+    for (j = 0; j < cx; j++) {
+      if (row.charAt(j) == '\t')
+        rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
+      rx++;
+    }
+    return rx;
   }
 
   editorScroll() {
+    this.E.rx = 0;
+    if (this.E.cy < this.E.erow.length) {
+      this.E.rx = this.editorRowCxToRx(this.E.erow[this.E.cy], this.E.cx);
+    }
     if (this.E.cy < this.E.rowoff) {
       this.E.rowoff = this.E.cy;
     }
     if (this.E.cy >= this.E.rowoff + this.E.screenrows) {
       this.E.rowoff = this.E.cy - this.E.screenrows + 1;
     }
-    if (this.E.cx < this.E.coloff) {
-      this.E.coloff = this.E.cx;
+    if (this.E.rx < this.E.coloff) {
+      this.E.coloff = this.E.rx;
     }
-    if (this.E.cx >= this.E.coloff + this.E.screencols) {
-      this.E.coloff = this.E.cx - this.E.screencols + 1;
+    if (this.E.rx >= this.E.coloff + this.E.screencols) {
+      this.E.coloff = this.E.rx - this.E.screencols + 1;
     }
   }
 
@@ -59,7 +78,7 @@ class Kilo {
     this.editorDrawRows();
     this.editorDrawStatusBar();
     this.editorDrawMessageBar();
-    this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${(this.E.cx - this.E.coloff) + 1}H`; //cursor
+    this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${(this.E.rx - this.E.coloff) + 1}H`; //cursor
     this.abuf += "\x1b[?25h";
     process.stdout.write(this.abuf, this.abuf.length);
     this.abuf = '';
@@ -189,10 +208,10 @@ class Kilo {
           this.abuf += "~";
         }
       } else {
-        let len = this.E.erow[filerow].length - this.E.coloff;
+        let len = this.E.render[filerow].length - this.E.coloff;
         if (len < 0) len = 0;
         if (len > this.E.screencols) len = this.E.screencols;
-        this.abuf += this.E.erow[filerow].substring(this.E.coloff, this.E.coloff + len);
+        this.abuf += this.E.render[filerow].substring(this.E.coloff, this.E.coloff + len);
       }
       this.abuf += "\x1b[K";
       this.abuf += os.EOL;
