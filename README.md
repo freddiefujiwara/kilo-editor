@@ -19,3 +19,6 @@ $ npm -g i kilo-editor
 - 10.x
 - 12.x
 - 14.x
+
+## test information
+[Coverage report](https://freddiefujiwara.com/kilo-editor/coverage/lcov-report/)
