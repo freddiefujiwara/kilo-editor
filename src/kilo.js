@@ -40,16 +40,17 @@ class Kilo {
 
   /**
    * exit if some error happened
-   * @params {Error} e - thrown error
+   * @params {string} e - dying message
+   * @params {int} status - exit status
    *
    */
-  die(e){
+  die(e,status){
     this.abuf = '';
     process.stdout.write("\x1b[2J", 4);
     process.stdout.write("\x1b[H", 3);
     this.disableRawMode();
     console.error(e);
-    process.exit(1);
+    process.exit(status || 1);
   }
 
   /**
@@ -179,11 +180,7 @@ class Kilo {
     switch (key.name) {
       case 'q':
         if (key.ctrl) {
-          this.abuf = '';
-          process.stdout.write("\x1b[2J", 4);
-          process.stdout.write("\x1b[H", 3);
-          this.disableRawMode();
-          process.exit();
+          this.die("BYE",0);
         }
         break;
       case 'home':
