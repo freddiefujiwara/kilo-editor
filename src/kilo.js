@@ -15,7 +15,6 @@ class Kilo {
    * <ul>
    * <li>initialize all E</li>
    * <li>this.buf = ''</li>
-   * <li>initialize all E</li>
    * <li>set timeout after 5 sec statusmsg will be dismissed</li>
    * </ul>
    */
@@ -41,7 +40,7 @@ class Kilo {
   /**
    * exit if some error happened
    * @param {string} e - dying message
-   * @param {int} status - exit status
+   * @param {int} status - exit status default: 1
    *
    */
   die(e,status){
@@ -173,8 +172,8 @@ class Kilo {
 
   /**
    * handle key action
-   * @param {string} str
-   * @param {Object} key
+   * @param {string} str - captured str (not used in this class)
+   * @param {Object} key - captured key information
    */
   editorReadKey(str, key) {
     switch (key.name) {
@@ -218,11 +217,11 @@ class Kilo {
 
   /**
    * handle key action for cursor movement
-   * @param {string} key.name
+   * @param {string} name - key.name
    */
-  editorMoveCursor(key) {
+  editorMoveCursor(name) {
     let row = (this.E.cy >= this.E.erow.length) ? undefined : this.E.erow[this.E.cy];
-    switch (key) {
+    switch (name) {
       case 'h':
       case 'left':
         if (this.E.cx > 0) {
