@@ -2,7 +2,7 @@
 # kilo-editor
 JavaScript port for [kilo](https://github.com/snaptoken/kilo-src)
 
-![Demo](https://freddiefujiwara.com/BuildYourOwnTextEditorByJavaScript/ezgif.com-gif-maker.gif)
+<img src="/publish/images/kilo-editor-demo.gif?raw=true" width="640px">
 
 # support environment
 ## os
