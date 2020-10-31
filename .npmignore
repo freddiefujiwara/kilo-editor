@@ -3,4 +3,7 @@ __tests__/
 a.out
 kilo.c
 publish/
-kilo Makefile
+kilo
+Makefile
+.replit
+coverage/
