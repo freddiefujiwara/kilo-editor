@@ -4,14 +4,21 @@ const fs = require('fs');
 const os = require('os');
 const KILO_TAB_STOP = 8;
 const MULTI_BYTE = 2;
-
+/**
+ * @classdesc This is Kilo class
+ * @constructor
+ */
 class Kilo {
   /**
    * @constructor
-   * @desc
-   * - initialize all E
-   * - this.buf = ''
-   * - sst timeout after 5 sec statusmsg will be dismissed
+   * @property 
+   * <ul>
+   * <li>initialize all E</li>
+   * <li>this.buf = ''</li>
+   * <li>initialize all E</li>
+   * <li>set timeout after 5 sec statusmsg will be dismissed</li>
+   * </ul>
+   * @property
    */
   constructor(argv) {
     readline.emitKeypressEvents(process.stdin);
@@ -34,7 +41,7 @@ class Kilo {
 
   /**
    * exit if some error happened
-   * @params {Error} e
+   * @params {Error} e - thrown error
    *
    */
   die(e){
@@ -69,8 +76,14 @@ class Kilo {
 
   /**
    * open this.E.filename
-   * set erow // editor low
-   * set render // for rendering low
+   * 
+   * @property 
+   * <ul>
+   * <li>set erow // editor low</li>
+   * <li>set render // for rendering low</li>
+   * </ul>
+   * @property
+   * @throws {Error: ENOENT}
    *
    */
   editorOpen() {
@@ -80,10 +93,15 @@ class Kilo {
 
   /**
    * calculate erow cx -> rx
-   * - treat \t
-   * - treat unicode multibyte characters
-   * @returns {int} rx
-   *
+   * 
+   * @property 
+   * <ul>
+   * <li>- treat \t</li>
+   * <li>- treat unicode multibyte characters</li>
+   * </ul>
+   * @property
+   * @returns {int} rx - rx position
+   * @todo handle multibyte properly 
    */
   editorRowCxToRx(row,  cx) {
     let rx = 0;
@@ -101,8 +119,13 @@ class Kilo {
 
   /**
    * calculate scrolling offset
-   * - handle rowoff
-   * - handle coloff
+   *
+   * @property 
+   * <ul>
+   * <li>handle rowoff</li>
+   * <li>handle coloff</li>
+   * </ul>
+   * @property
    *
    */
   editorScroll() {
@@ -126,12 +149,18 @@ class Kilo {
 
   /**
    * refresh screen
-   * - hide cursor
-   * - draw rows (file contents)
-   * - draw status bar
-   * - draw message bar
-   * - set cursor proper position (rx,cy)
-   * - show cursor
+   *
+   * @property 
+   * <ul>
+   * <li>hide cursor</li>
+   * <li>draw rows (file contents)</li>
+   * <li>draw status bar</li>
+   * <li>draw message bar</li>
+   * <li>set cursor proper position (rx,cy)</li>
+   * <li>show cursor</li>
+   * </ul>
+   * @property
+   *
    */
   editorRefreshScreen() {
     this.editorScroll();
@@ -148,8 +177,8 @@ class Kilo {
 
   /**
    * handle key action
-   * @params {String} str
-   * @params {Key} key
+   * @params {string} str
+   * @params {Object} key
    */
   editorReadKey(str, key) {
     switch (key.name) {
@@ -197,7 +226,7 @@ class Kilo {
 
   /**
    * handle key action for cursor movement
-   * @params {Key} key
+   * @params {string} key.name
    */
   editorMoveCursor(key) {
     let row = (this.E.cy >= this.E.erow.length) ? undefined : this.E.erow[this.E.cy];
