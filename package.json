@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/freddiefujiwara/kilojs.git"
+    "url": "git+https://github.com/freddiefujiwara/kilo-editor.git"
   },
   "keywords": [
     "JavaScript"
@@ -18,9 +18,9 @@
   "author": "Fumikazu Fujiwara <github@ze.gs>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/freddiefujiwara/kilojs/issues"
+    "url": "https://github.com/freddiefujiwara/kilo-editor/issues"
   },
-  "homepage": "https://github.com/freddiefujiwara/kilojs#readme",
+  "homepage": "https://github.com/freddiefujiwara/kilo-editor#readme",
   "dependencies": {},
   "devDependencies": {
     "jest": "^26.6.1",
