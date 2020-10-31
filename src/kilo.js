@@ -40,8 +40,8 @@ class Kilo {
 
   /**
    * exit if some error happened
-   * @params {string} e - dying message
-   * @params {int} status - exit status
+   * @param {string} e - dying message
+   * @param {int} status - exit status
    *
    */
   die(e,status){
@@ -173,8 +173,8 @@ class Kilo {
 
   /**
    * handle key action
-   * @params {string} str
-   * @params {Object} key
+   * @param {string} str
+   * @param {Object} key
    */
   editorReadKey(str, key) {
     switch (key.name) {
@@ -218,7 +218,7 @@ class Kilo {
 
   /**
    * handle key action for cursor movement
-   * @params {string} key.name
+   * @param {string} key.name
    */
   editorMoveCursor(key) {
     let row = (this.E.cy >= this.E.erow.length) ? undefined : this.E.erow[this.E.cy];
