@@ -79,7 +79,7 @@ class Kilo {
         break;
       case 'end':
         {
-          let times = this.E.screencols;
+          let times = (this.E.cy >= this.E.erow.length) ? this.E.screencols : this.E.erow[this.E.cy].length;
           while (times--) this.editorMoveCursor('right');
         }
         break;
