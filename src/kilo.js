@@ -11,7 +11,7 @@ const MULTI_BYTE = 2;
 class Kilo {
   /**
    * @constructor
-   * @property 
+   * @desc 
    * <ul>
    * <li>initialize all E</li>
    * <li>this.buf = ''</li>
@@ -76,7 +76,7 @@ class Kilo {
   /**
    * open this.E.filename
    * 
-   * @property 
+   * @desc 
    * <ul>
    * <li>set erow // editor low</li>
    * <li>set render // for rendering low</li>
@@ -92,7 +92,7 @@ class Kilo {
   /**
    * calculate erow cx -> rx
    * 
-   * @property 
+   * @desc 
    * <ul>
    * <li>- treat \t</li>
    * <li>- treat unicode multibyte characters</li>
@@ -117,7 +117,7 @@ class Kilo {
   /**
    * calculate scrolling offset
    *
-   * @property 
+   * @desc 
    * <ul>
    * <li>handle rowoff</li>
    * <li>handle coloff</li>
@@ -146,7 +146,7 @@ class Kilo {
   /**
    * refresh screen
    *
-   * @property 
+   * @desc 
    * <ul>
    * <li>hide cursor</li>
    * <li>draw rows (file contents)</li>
