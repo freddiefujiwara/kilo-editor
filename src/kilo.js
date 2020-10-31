@@ -6,18 +6,18 @@ const os = require('os');
 class Kilo {
   constructor(argv){
     readline.emitKeypressEvents(process.stdin);
-    if(argv && argv.length>0){
-      this.file = argv[0];
-    }
     this.E = {
       cx : 0,
       cy : 0,
       erow : [],
       rowoff : 0,
       coloff : 0,
-      screenrows : process.stdout.rows,
-      screencols : process.stdout.columns
+      screenrows : process.stdout.rows - 2,
+      screencols : process.stdout.columns,
+      filename : argv && argv.length>0 ? argv[0] : undefined,
+      statusmsg : "HELP: Ctrl-Q = quit"
     };
+    setTimeout(() => this.E.statusmsg = "" ,5000);
     this.abuf = '';
   }
   enableRawMode() {
@@ -34,7 +34,7 @@ class Kilo {
   }
 
   editorOpen() {
-    this.E.erow = fs.readFileSync(this.file, 'utf8').trim().split(os.EOL);
+    this.E.erow = fs.readFileSync(this.E.filename, 'utf8').trim().split(os.EOL);
   }
 
   editorScroll() {
@@ -57,6 +57,8 @@ class Kilo {
     this.abuf += "\x1b[?25l";
     this.abuf += "\x1b[H";
     this.editorDrawRows();
+    this.editorDrawStatusBar();
+    this.editorDrawMessageBar();
     this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${(this.E.cx - this.E.coloff) + 1}H`; //cursor
     this.abuf += "\x1b[?25h";
     process.stdout.write(this.abuf, this.abuf.length);
@@ -79,13 +81,17 @@ class Kilo {
         break;
       case 'end':
         {
-          let times = (this.E.cy >= this.E.erow.length) ? this.E.screencols : this.E.erow[this.E.cy].length;
-          while (times--) this.editorMoveCursor('right');
+          if(this.E.cy < this.E.erow.length) this.E.cx = this.E.erow[this.E.cy].length;
         }
         break;
       case 'pageup':
+        this.E.cy = this.E.rowoff;
       case 'pagedown':
         {
+          if(key.name == 'pagedown'){
+            this.E.cy = this.E.rowoff + this.E.screenrows - 1;
+            if(this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
+          }
           let times = this.E.screenrows;
           while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
         }
@@ -108,11 +114,21 @@ class Kilo {
     switch (key) {
       case 'h':
       case 'left':
-        if (this.E.cx > 0) this.E.cx--;
+        if (this.E.cx > 0){
+          this.E.cx--;
+        } else if (this.E.cy > 0){
+          this.E.cy--;
+          this.E.cx = this.E.erow[this.E.cy].length;
+        }
         break;
       case 'l':
       case 'right':
-        if(row && this.E.cx < row.length)this.E.cx++;
+        if(row && this.E.cx < row.length) {
+          this.E.cx++;
+        } else if( row !== undefined && this.E.cx == row.length){
+          this.E.cy++;
+          this.E.cx = 0;
+        }
         break;
       case 'k':
       case 'up':
@@ -128,6 +144,30 @@ class Kilo {
     if (this.E.cx > rowlen) {
       this.E.cx = rowlen;
     }
+  }
+
+  editorDrawStatusBar() {
+    this.abuf +=  "\x1b[7m";
+    const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines`;
+    let len = status.length;
+    const rstatus = `${this.E.cy + 1}/${this.E.erow.length}`;
+    if (len > this.E.screencols) len = this.E.screencols;
+    this.abuf +=  status.substring(0,len);
+    while (len < this.E.screencols) {
+      if (this.E.screencols - len == rstatus.length) {
+        this.abuf +=  rstatus;
+        break;
+      } else {
+        this.abuf +=  " ";
+        len++;
+      }
+    }
+    this.abuf +=  "\x1b[m";
+    this.abuf +=  "\r\n";
+  }
+  editorDrawMessageBar(){
+    this.abuf +=  "\x1b[K";
+    this.abuf +=  this.E.statusmsg.length > this.E.screencols ? this.E.statusmsg.substring(0,this.E.screencols) : this.E.statusmsg;
   }
 
   editorDrawRows() {
@@ -155,15 +195,13 @@ class Kilo {
         this.abuf += this.E.erow[filerow].substring(this.E.coloff,this.E.coloff+len);
       }
       this.abuf += "\x1b[K";
-      if (y < this.E.screenrows - 1) {
-        this.abuf += os.EOL;
-      }
+      this.abuf += os.EOL;
     }
   }
 
   main() {
     this.enableRawMode();
-    if (this.file !== undefined) {
+    if (this.E.filename !== undefined) {
       this.editorOpen();
     }
     this.editorRefreshScreen();
