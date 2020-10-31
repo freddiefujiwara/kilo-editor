@@ -171,4 +171,12 @@ describe('Kilo', () => {
     k.editorDrawRows();
     expect(k.abuf.length).not.toBe(0);
   });
+  it(' editorRowCxToRx() : can convert cx -> rx', () => {
+    const k = new Kilo(['LICENSE']);
+    expect(k.editorRowCxToRx).toBeInstanceOf(Function);
+  });
+  it(' editorMoveCursor() : can calculate proper cursor position', () => {
+    const k = new Kilo(['LICENSE']);
+    expect(k.editorMoveCursor).toBeInstanceOf(Function);
+  });
 });

@@ -3,8 +3,16 @@ const pkg = require('../package');
 const fs = require('fs');
 const os = require('os');
 const KILO_TAB_STOP = 8;
+const MULTI_BYTE = 2;
 
 class Kilo {
+  /**
+   * @constructor
+   * @desc
+   * - initialize all E
+   * - this.buf = ''
+   * - sst timeout after 5 sec statusmsg will be dismissed
+   */
   constructor(argv) {
     readline.emitKeypressEvents(process.stdin);
     this.E = {
@@ -23,12 +31,35 @@ class Kilo {
     setTimeout(() => this.E.statusmsg = "", 5000);
     this.abuf = '';
   }
+
+  /**
+   * exit if some error happened
+   * @params {Error} e
+   *
+   */
+  die(e){
+    this.abuf = '';
+    process.stdout.write("\x1b[2J", 4);
+    process.stdout.write("\x1b[H", 3);
+    this.disableRawMode();
+    console.error(e);
+    process.exit(1);
+  }
+
+  /**
+   * set TTY rowmode
+   *
+   */
   enableRawMode() {
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(true);
     }
   }
 
+  /**
+   * clear TTY rowmode
+   *
+   */
   disableRawMode() {
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(false);
@@ -36,22 +67,44 @@ class Kilo {
     }
   }
 
+  /**
+   * open this.E.filename
+   * set erow // editor low
+   * set render // for rendering low
+   *
+   */
   editorOpen() {
     this.E.erow = fs.readFileSync(this.E.filename, 'utf8').trim().split(os.EOL);
     this.E.render = this.E.erow.map((str) => str.replace(/\t/g," ".repeat(KILO_TAB_STOP)));
   }
 
+  /**
+   * calculate erow cx -> rx
+   * - treat \t
+   * - treat unicode multibyte characters
+   * @returns {int} rx
+   *
+   */
   editorRowCxToRx(row,  cx) {
     let rx = 0;
     let  j;
+    const chars = row.match(/./ug);
     for (j = 0; j < cx; j++) {
-      if (row.charAt(j) == '\t')
+      if (chars[j] == '\t')
         rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
+      if (/%[89ABab]/g.test(encodeURIComponent(chars[j])))
+        rx += (MULTI_BYTE - 1) - (rx % MULTI_BYTE);
       rx++;
     }
     return rx;
   }
 
+  /**
+   * calculate scrolling offset
+   * - handle rowoff
+   * - handle coloff
+   *
+   */
   editorScroll() {
     this.E.rx = 0;
     if (this.E.cy < this.E.erow.length) {
@@ -71,6 +124,15 @@ class Kilo {
     }
   }
 
+  /**
+   * refresh screen
+   * - hide cursor
+   * - draw rows (file contents)
+   * - draw status bar
+   * - draw message bar
+   * - set cursor proper position (rx,cy)
+   * - show cursor
+   */
   editorRefreshScreen() {
     this.editorScroll();
     this.abuf += "\x1b[?25l";
@@ -84,6 +146,11 @@ class Kilo {
     this.abuf = '';
   }
 
+  /**
+   * handle key action
+   * @params {String} str
+   * @params {Key} key
+   */
   editorReadKey(str, key) {
     switch (key.name) {
       case 'q':
@@ -128,6 +195,10 @@ class Kilo {
     this.editorRefreshScreen();
   }
 
+  /**
+   * handle key action for cursor movement
+   * @params {Key} key
+   */
   editorMoveCursor(key) {
     let row = (this.E.cy >= this.E.erow.length) ? undefined : this.E.erow[this.E.cy];
     switch (key) {
@@ -165,6 +236,9 @@ class Kilo {
     }
   }
 
+  /**
+   * drow status bar
+   */
   editorDrawStatusBar() {
     this.abuf += "\x1b[7m";
     const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines`;
@@ -182,13 +256,20 @@ class Kilo {
       }
     }
     this.abuf += "\x1b[m";
-    this.abuf += "\r\n";
+    this.abuf += os.EOL;
   }
+
+  /**
+   * drow message bar
+   */
   editorDrawMessageBar() {
     this.abuf += "\x1b[K";
     this.abuf += this.E.statusmsg.length > this.E.screencols ? this.E.statusmsg.substring(0, this.E.screencols) : this.E.statusmsg;
   }
 
+  /**
+   * drow file contents
+   */
   editorDrawRows() {
     for (let y = 0; y < this.E.screenrows; y++) {
       let filerow = y + this.E.rowoff;
@@ -218,13 +299,20 @@ class Kilo {
     }
   }
 
+  /**
+   * main function
+   */
   main() {
-    this.enableRawMode();
-    if (this.E.filename !== undefined) {
-      this.editorOpen();
+    try{
+      this.enableRawMode();
+      if (this.E.filename !== undefined) {
+        this.editorOpen();
+      }
+      this.editorRefreshScreen();
+      process.stdin.on('keypress', this.editorReadKey.bind(this));
+    } catch(e) {
+      this.die(e);
     }
-    this.editorRefreshScreen();
-    process.stdin.on('keypress', this.editorReadKey.bind(this));
   }
 }
 if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {

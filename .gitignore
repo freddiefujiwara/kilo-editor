@@ -107,3 +107,4 @@ dist
 a.out
 kilo.c
 Makefile
+out/
