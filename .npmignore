@@ -3,3 +3,4 @@ __tests__/
 a.out
 kilo.c
 publish/
+kilo Makefile
