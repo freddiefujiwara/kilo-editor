@@ -102,5 +102,8 @@ dist
 
 # TernJS port file
 .tern-port
+
+# kilo.c
 a.out
 kilo.c
+Makefile
