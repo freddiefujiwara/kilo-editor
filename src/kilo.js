@@ -4,20 +4,20 @@ const fs = require('fs');
 const os = require('os');
 
 class Kilo {
-  constructor(argv){
+  constructor(argv) {
     readline.emitKeypressEvents(process.stdin);
     this.E = {
-      cx : 0,
-      cy : 0,
-      erow : [],
-      rowoff : 0,
-      coloff : 0,
-      screenrows : process.stdout.rows - 2,
-      screencols : process.stdout.columns,
-      filename : argv && argv.length>0 ? argv[0] : undefined,
-      statusmsg : "HELP: Ctrl-Q = quit"
+      cx: 0,
+      cy: 0,
+      erow: [],
+      rowoff: 0,
+      coloff: 0,
+      screenrows: process.stdout.rows - 2,
+      screencols: process.stdout.columns,
+      filename: argv && argv.length > 0 ? argv[0] : undefined,
+      statusmsg: "HELP: Ctrl-Q = quit"
     };
-    setTimeout(() => this.E.statusmsg = "" ,5000);
+    setTimeout(() => this.E.statusmsg = "", 5000);
     this.abuf = '';
   }
   enableRawMode() {
@@ -81,16 +81,16 @@ class Kilo {
         break;
       case 'end':
         {
-          if(this.E.cy < this.E.erow.length) this.E.cx = this.E.erow[this.E.cy].length;
+          if (this.E.cy < this.E.erow.length) this.E.cx = this.E.erow[this.E.cy].length;
         }
         break;
       case 'pageup':
         this.E.cy = this.E.rowoff;
       case 'pagedown':
         {
-          if(key.name == 'pagedown'){
+          if (key.name == 'pagedown') {
             this.E.cy = this.E.rowoff + this.E.screenrows - 1;
-            if(this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
+            if (this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
           }
           let times = this.E.screenrows;
           while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
@@ -114,18 +114,18 @@ class Kilo {
     switch (key) {
       case 'h':
       case 'left':
-        if (this.E.cx > 0){
+        if (this.E.cx > 0) {
           this.E.cx--;
-        } else if (this.E.cy > 0){
+        } else if (this.E.cy > 0) {
           this.E.cy--;
           this.E.cx = this.E.erow[this.E.cy].length;
         }
         break;
       case 'l':
       case 'right':
-        if(row && this.E.cx < row.length) {
+        if (row && this.E.cx < row.length) {
           this.E.cx++;
-        } else if( row !== undefined && this.E.cx == row.length){
+        } else if (row !== undefined && this.E.cx == row.length) {
           this.E.cy++;
           this.E.cx = 0;
         }
@@ -147,27 +147,27 @@ class Kilo {
   }
 
   editorDrawStatusBar() {
-    this.abuf +=  "\x1b[7m";
+    this.abuf += "\x1b[7m";
     const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines`;
     let len = status.length;
     const rstatus = `${this.E.cy + 1}/${this.E.erow.length}`;
     if (len > this.E.screencols) len = this.E.screencols;
-    this.abuf +=  status.substring(0,len);
+    this.abuf += status.substring(0, len);
     while (len < this.E.screencols) {
       if (this.E.screencols - len == rstatus.length) {
-        this.abuf +=  rstatus;
+        this.abuf += rstatus;
         break;
       } else {
-        this.abuf +=  " ";
+        this.abuf += " ";
         len++;
       }
     }
-    this.abuf +=  "\x1b[m";
-    this.abuf +=  "\r\n";
+    this.abuf += "\x1b[m";
+    this.abuf += "\r\n";
   }
-  editorDrawMessageBar(){
-    this.abuf +=  "\x1b[K";
-    this.abuf +=  this.E.statusmsg.length > this.E.screencols ? this.E.statusmsg.substring(0,this.E.screencols) : this.E.statusmsg;
+  editorDrawMessageBar() {
+    this.abuf += "\x1b[K";
+    this.abuf += this.E.statusmsg.length > this.E.screencols ? this.E.statusmsg.substring(0, this.E.screencols) : this.E.statusmsg;
   }
 
   editorDrawRows() {
@@ -190,9 +190,9 @@ class Kilo {
         }
       } else {
         let len = this.E.erow[filerow].length - this.E.coloff;
-        if(len < 0) len = 0;
+        if (len < 0) len = 0;
         if (len > this.E.screencols) len = this.E.screencols;
-        this.abuf += this.E.erow[filerow].substring(this.E.coloff,this.E.coloff+len);
+        this.abuf += this.E.erow[filerow].substring(this.E.coloff, this.E.coloff + len);
       }
       this.abuf += "\x1b[K";
       this.abuf += os.EOL;
@@ -208,7 +208,7 @@ class Kilo {
     process.stdin.on('keypress', this.editorReadKey.bind(this));
   }
 }
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined'){
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
   module.exports = Kilo;
 } else {
   window.Kilo = Kilo;
