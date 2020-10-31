@@ -150,6 +150,8 @@ describe('Kilo', () => {
   });
   it(' editorDrawRows() : can draw lines', () => {
     let k = new Kilo(['LICENSE']);
+    k.E.screenrows = 100;
+    k.E.screencols = 100;
     expect(k.editorDrawRows).toBeInstanceOf(Function);
     expect(k.abuf.length).toBe(0);
     k.editorDrawRows();
@@ -163,6 +165,8 @@ describe('Kilo', () => {
     expect(k.abuf.length).not.toBe(0);
 
     k = new Kilo([]);
+    k.E.screenrows = 100;
+    k.E.screencols = 100;
     expect(k.abuf.length).toBe(0);
     k.editorDrawRows();
     expect(k.abuf.length).not.toBe(0);
