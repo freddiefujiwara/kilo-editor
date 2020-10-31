@@ -1,2 +1,2 @@
 language = "nodejs"
-run = "npm t"
+run = "npx jest --collect-coverage --watch"
