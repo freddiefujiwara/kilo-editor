@@ -21,5 +21,9 @@ $ npm -g i kilo-editor
 - 12.x
 - 14.x
 
+# for developer
 ## test information
 [Coverage report](https://freddiefujiwara.com/kilo-editor/coverage/lcov-report/)
+
+## class document
+[Kilo class](https://freddiefujiwara.com/kilo-editor/out/Kilo.html)
