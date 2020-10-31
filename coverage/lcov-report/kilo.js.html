@@ -491,20 +491,20 @@ const fs = require('fs');
 const os = require('os');
 &nbsp;
 class Kilo {
-  constructor(argv){
+  constructor(argv) {
     readline.emitKeypressEvents(process.stdin);
     this.E = {
-      cx : 0,
-      cy : 0,
-      erow : [],
-      rowoff : 0,
-      coloff : 0,
-      screenrows : process.stdout.rows - 2,
-      screencols : process.stdout.columns,
-      filename : argv &amp;&amp; argv.length&gt;0 ? argv[0] : undefined,
-      statusmsg : "HELP: Ctrl-Q = quit"
+      cx: 0,
+      cy: 0,
+      erow: [],
+      rowoff: 0,
+      coloff: 0,
+      screenrows: process.stdout.rows - 2,
+      screencols: process.stdout.columns,
+      filename: argv &amp;&amp; argv.length &gt; 0 ? argv[0] : undefined,
+      statusmsg: "HELP: Ctrl-Q = quit"
     };
-    setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >this.E.statusmsg = "" </span>,5000);
+    setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >this.E.statusmsg = "",</span> 5000);
     this.abuf = '';
   }
 <span class="fstat-no" title="function not covered" >  en</span>ableRawMode() {
@@ -568,16 +568,16 @@ class Kilo {
         break;
       case 'end':
         {
-          <span class="missing-if-branch" title="else path not taken" >E</span>if(this.E.cy &lt; this.E.erow.length) this.E.cx = this.E.erow[this.E.cy].length;
+          <span class="missing-if-branch" title="else path not taken" >E</span>if (this.E.cy &lt; this.E.erow.length) this.E.cx = this.E.erow[this.E.cy].length;
         }
         break;
       case 'pageup':
         this.E.cy = this.E.rowoff;
       case 'pagedown':
         {
-          if(key.name == 'pagedown'){
+          if (key.name == 'pagedown') {
             this.E.cy = this.E.rowoff + this.E.screenrows - 1;
-            <span class="missing-if-branch" title="if path not taken" >I</span>if(this.E.cy &gt; this.E.erow.length) <span class="cstat-no" title="statement not covered" >this.E.cy = this.E.erow.length;</span>
+            <span class="missing-if-branch" title="if path not taken" >I</span>if (this.E.cy &gt; this.E.erow.length) <span class="cstat-no" title="statement not covered" >this.E.cy = this.E.erow.length;</span>
           }
           let times = this.E.screenrows;
           while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
@@ -601,18 +601,18 @@ class Kilo {
     switch (key) {
 <span class="branch-0 cbranch-no" title="branch not covered" >      case 'h':</span>
       case 'left':
-        if (this.E.cx &gt; 0){
+        if (this.E.cx &gt; 0) {
           this.E.cx--;
-        } else <span class="missing-if-branch" title="else path not taken" >E</span>if (this.E.cy &gt; 0){
+        } else <span class="missing-if-branch" title="else path not taken" >E</span>if (this.E.cy &gt; 0) {
           this.E.cy--;
           this.E.cx = this.E.erow[this.E.cy].length;
         }
         break;
 <span class="branch-2 cbranch-no" title="branch not covered" >      case 'l':</span>
       case 'right':
-        if(row &amp;&amp; this.E.cx &lt; row.length) {
+        if (row &amp;&amp; this.E.cx &lt; row.length) {
           this.E.cx++;
-        } else <span class="missing-if-branch" title="else path not taken" >E</span>if( row !== undefined &amp;&amp; this.E.cx == row.length){
+        } else <span class="missing-if-branch" title="else path not taken" >E</span>if (row !== undefined &amp;&amp; this.E.cx == row.length) {
           this.E.cy++;
           this.E.cx = 0;
         }
@@ -634,27 +634,27 @@ class Kilo {
   }
 &nbsp;
   editorDrawStatusBar() {
-    this.abuf +=  "\x1b[7m";
+    this.abuf += "\x1b[7m";
     const status = `${this.E.filename ? this.E.filename : <span class="branch-1 cbranch-no" title="branch not covered" >"[No Name]"}</span> - ${this.E.erow.length} lines`;
     let len = status.length;
     const rstatus = `${this.E.cy + 1}/${this.E.erow.length}`;
     <span class="missing-if-branch" title="if path not taken" >I</span>if (len &gt; this.E.screencols) <span class="cstat-no" title="statement not covered" >len = this.E.screencols;</span>
-    this.abuf +=  status.substring(0,len);
+    this.abuf += status.substring(0, len);
     while (len &lt; this.E.screencols) {
 <span class="cstat-no" title="statement not covered" >      if (this.E.screencols - len == rstatus.length) {</span>
-<span class="cstat-no" title="statement not covered" >        this.abuf +=  rstatus;</span>
+<span class="cstat-no" title="statement not covered" >        this.abuf += rstatus;</span>
 <span class="cstat-no" title="statement not covered" >        break;</span>
       } else {
-<span class="cstat-no" title="statement not covered" >        this.abuf +=  " ";</span>
+<span class="cstat-no" title="statement not covered" >        this.abuf += " ";</span>
 <span class="cstat-no" title="statement not covered" >        len++;</span>
       }
     }
-    this.abuf +=  "\x1b[m";
-    this.abuf +=  "\r\n";
+    this.abuf += "\x1b[m";
+    this.abuf += "\r\n";
   }
-  editorDrawMessageBar(){
-    this.abuf +=  "\x1b[K";
-    this.abuf +=  this.E.statusmsg.length &gt; this.E.screencols ? <span class="branch-0 cbranch-no" title="branch not covered" >this.E.statusmsg.substring(0,this.E.screencols) </span>: this.E.statusmsg;
+  editorDrawMessageBar() {
+    this.abuf += "\x1b[K";
+    this.abuf += this.E.statusmsg.length &gt; this.E.screencols ? <span class="branch-0 cbranch-no" title="branch not covered" >this.E.statusmsg.substring(0, this.E.screencols) </span>: this.E.statusmsg;
   }
 &nbsp;
   editorDrawRows() {
@@ -677,9 +677,9 @@ class Kilo {
         }
       } else {
         let len = <span class="cstat-no" title="statement not covered" >this.E.erow[filerow].length - this.E.coloff;</span>
-<span class="cstat-no" title="statement not covered" >        if(len &lt; 0) <span class="cstat-no" title="statement not covered" >len = 0;</span></span>
+<span class="cstat-no" title="statement not covered" >        if (len &lt; 0) <span class="cstat-no" title="statement not covered" >len = 0;</span></span>
 <span class="cstat-no" title="statement not covered" >        if (len &gt; this.E.screencols) <span class="cstat-no" title="statement not covered" >len = this.E.screencols;</span></span>
-<span class="cstat-no" title="statement not covered" >        this.abuf += this.E.erow[filerow].substring(this.E.coloff,this.E.coloff+len);</span>
+<span class="cstat-no" title="statement not covered" >        this.abuf += this.E.erow[filerow].substring(this.E.coloff, this.E.coloff + len);</span>
       }
       this.abuf += "\x1b[K";
       this.abuf += os.EOL;
@@ -695,7 +695,7 @@ class Kilo {
 <span class="cstat-no" title="statement not covered" >    process.stdin.on('keypress', this.editorReadKey.bind(this));</span>
   }
 }
-<span class="missing-if-branch" title="else path not taken" >E</span>if (typeof module !== 'undefined' &amp;&amp; typeof module.exports !== 'undefined'){
+<span class="missing-if-branch" title="else path not taken" >E</span>if (typeof module !== 'undefined' &amp;&amp; typeof module.exports !== 'undefined') {
   module.exports = Kilo;
 } else {
 <span class="cstat-no" title="statement not covered" >  window.Kilo = Kilo;</span>
@@ -706,7 +706,7 @@ class Kilo {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Sat Oct 31 2020 10:37:58 GMT+0000 (Coordinated Universal Time)
+                at Sat Oct 31 2020 10:54:33 GMT+0000 (Coordinated Universal Time)
             </div>
         </div>
         <script src="prettify.js"></script>
