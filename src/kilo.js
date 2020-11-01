@@ -24,12 +24,16 @@ class Kilo {
       cx: 0,
       rx: 0,
       cy: 0,
+      sx: [],
+      sy: [],
+      xi: 0,
       erow: [],
       render: [],
       rowoff: 0,
       coloff: 0,
       dirty: 0,
       insert: false,
+      search: false,
       screenrows: process.stdout.rows - 2, //status bar and message bar
       screencols: process.stdout.columns,
       filename: argv && argv.length > 0 ? argv[0] : undefined,
@@ -38,6 +42,7 @@ class Kilo {
     this.editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
     this.backup = {}
     this.abuf = '';
+    this.sbuf = '';
   }
 
   /**
@@ -282,6 +287,11 @@ class Kilo {
     try{
       if(key.meta){
         this.E.insert = false;
+        this.E.search = false;
+        this.E.sx = [];
+        this.E.sy = [];
+        this.E.si = 0;
+        this.sbuf = '';
       } else if(key.ctrl){
         switch (key.name) {
           case 'q':
@@ -292,8 +302,8 @@ class Kilo {
             break;
         }
       } else {
-        if(!this.E.insert){
-          if(key.name === undefined){
+        if(!this.E.insert && !this.E.search){ // not insert mode
+          if(key.name === undefined){  // not insert and not alphabet
             switch (key.sequence) {
               case '$':
                 if (this.E.cy < this.E.erow.length)
@@ -302,8 +312,11 @@ class Kilo {
               case '^':
                 this.E.cx = 0;
                 break;
+              case '/':
+                this.E.search = true;
+                break;
             }
-          } else {
+          } else { // not insert and alphabet
             switch (key.name) {
               case 'home':
               case '0':
@@ -327,10 +340,12 @@ class Kilo {
               case 'escape':
                 this.E.insert = false;
                 break;
+              case 'a':
+                this.editorMoveCursor('right');
               case 'insert':
               case 'i':
                 this.E.insert = true;
-                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --":""} - ${JSON.stringify(key)}`);
+                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --":""}\t${JSON.stringify(key)}`);
                 this.editorRefreshScreen();
                 break;
               case 'o':
@@ -376,7 +391,46 @@ class Kilo {
                 break;
             }
           }
-        } else {
+        } else if(this.E.search && !this.E.insert) { // search mode
+          switch (key.name) {
+            case 'backspace':
+            case 'delete':
+              this.sbuf = '';
+              break;
+            case 'return':
+              this.E.search = false;
+              this.E.sx = [];
+              this.E.sy = [];
+              this.E.si = 0;
+              this.sbuf = '';
+              break;
+            case 'right':
+            case 'left':
+              key.name == 'right' ? this.E.si++ : this.E.si --;
+              if(this.E.si >= this.E.sx.length)
+                this.E.si = 0;
+              if(this.E.si < 0)
+                this.E.si = this.E.sx.length - 1;
+            default:
+              if(/^[\ta-z0-9!"#$%&'()*+,.\/:;<=>?@\[\]\\ ^_`{|}~-]$/i.test(key.sequence)){
+                this.sbuf += key.sequence;
+                this.E.sx = [];
+                this.E.sy = [];
+                this.E.si = 0;
+                this.E.erow.forEach((row,y) => {
+                  const match = row.match(new RegExp(this.sbuf, 'i'));
+                  if(match){
+                    this.E.sx.push(match.index);
+                    this.E.sy.push(y);
+                  }
+                });
+              }
+              if(this.E.sx.length > this.E.si){
+                this.E.cx = this.E.sx[this.E.si];
+                this.E.cy = this.E.sy[this.E.si];
+              }
+          }
+        } else { // insert mode
           switch (key.name) {
             case 'home':
               this.E.cx = 0;
@@ -434,7 +488,7 @@ class Kilo {
                 this.editorInsertChar(key.sequence);
           }
         }
-        this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --":""} - ${JSON.stringify(key)}`);
+        this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.search ? `/${this.sbuf} (${this.E.sx.length} found <-prev:next->)` : (this.E.insert ? "-- INSERT --":"")}\t${JSON.stringify(key)}`);
       }
       this.editorRefreshScreen();
     } catch(e) {
