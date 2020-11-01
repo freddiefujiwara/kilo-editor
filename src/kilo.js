@@ -345,7 +345,7 @@ class Kilo {
               case 'insert':
               case 'i':
                 this.E.insert = true;
-                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --":""}\t${JSON.stringify(key)}`);
+                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --":""}`);
                 this.editorRefreshScreen();
                 break;
               case 'o':
@@ -488,7 +488,7 @@ class Kilo {
                 this.editorInsertChar(key.sequence);
           }
         }
-        this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.search ? `/${this.sbuf} (${this.E.sx.length} found <-prev:next->)` : (this.E.insert ? "-- INSERT --":"")}\t${JSON.stringify(key)}`);
+        this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.search ? `/${this.sbuf} (${this.E.sx.length} found <-prev:next->)` : (this.E.insert ? "-- INSERT --":"")}`);
       }
       this.editorRefreshScreen();
     } catch(e) {
@@ -590,14 +590,38 @@ class Kilo {
           this.abuf += "~";
         }
       } else {
-        let len = this.E.render[filerow].length - this.E.coloff;
+        const row = this.E.render[filerow];
+        let len = row.length - this.E.coloff;
         if (len < 0) len = 0;
         if (len > this.E.screencols) len = this.E.screencols;
-        this.abuf += this.E.render[filerow].substring(this.E.coloff, this.E.coloff + len);
+        // syntax high right
+        this.abuf += this.editorUpdateSyntax(row.substring(this.E.coloff, this.E.coloff + len));
       }
       this.abuf += "\x1b[K"; //remove all chars after the cursor position
       this.abuf += os.EOL;
     }
+  }
+
+  /**
+   * syntax highlighting
+   * @param {string} - one row
+   * @returns {string} - highlighted string
+   *
+   */
+  editorUpdateSyntax(row){
+    return row
+      .replace(new RegExp("([0-9]+)",'g') // number
+        ,(match, p1, a , b) => `\x1b[31m${p1}\x1b[39m`)
+      .replace(new RegExp("(\\?|&{1,2}|\\+|\\||\\-|\\*|[<>;:=])",'g') // operator
+        ,(match, p1, a , b) => `\x1b[36m${p1}\x1b[39m`)
+      .replace(new RegExp("(')([^']*)(')",'g') // operator
+        ,(match, p1, p2, p3, a , b ) => `\x1b[35m${p1}${p2}${p3}\x1b[39m`) // string quote
+      .replace(new RegExp('(")([^"]*)(")','g') // operator
+        ,(match, p1, p2, p3, a , b ) => `\x1b[35m${p1}${p2}${p3}\x1b[39m`) // string quote
+      .replace(new RegExp("([\\W])(try|let|const|constructor|require|this|new)([\\W])",'g') // keyword
+        ,(match, p1, p2, p3, a , b ) => `${p1}\x1b[32m${p2}\x1b[39m${p3}`)
+      .replace(new RegExp("([\\W])(break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch)([\\W])",'g') // reserved
+        ,(match, p1, p2, p3, a , b) => `${p1}\x1b[33m${p2}\x1b[39m${p3}`);
   }
 
   /**
