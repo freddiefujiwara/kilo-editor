@@ -28,12 +28,14 @@ class Kilo {
       render: [],
       rowoff: 0,
       coloff: 0,
+      dirty: 0,
+      insert: false,
       screenrows: process.stdout.rows - 2,
       screencols: process.stdout.columns,
       filename: argv && argv.length > 0 ? argv[0] : undefined,
-      statusmsg: "HELP: Ctrl-Q = quit"
+      statusmsg: ""
     };
-    setTimeout(() => this.E.statusmsg = "", 5000);
+    this.editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
     this.abuf = '';
   }
 
@@ -86,7 +88,100 @@ class Kilo {
    */
   editorOpen() {
     this.E.erow = fs.readFileSync(this.E.filename, 'utf8').trim().split(os.EOL);
+    this.editorUpdateRow();
+    this.E.dirty = 0;
+  }
+
+  /**
+   * save to this.E.filename
+   */
+  editorSave() {
+    const erows = this.E.erow.join(os.EOL);
+    try{
+      fs.writeFileSync(this.E.filename,erows);
+      this.editorSetStatusMessage(`${erows.length} bytes written to disk`)
+      this.E.dirty = 0;
+    } catch (e) {
+      this.editorSetStatusMessage(`${e.name}:${e.message}`);
+    }
+  }
+
+  /**
+   * show status message in 5 secs
+   */
+  editorSetStatusMessage(message){
+    this.E.statusmsg = message;
+    setTimeout(() => this.E.statusmsg = "", 5000);
+  }
+
+  /**
+   * update render
+   * @todo handle multibyte properly
+   */
+  editorUpdateRow() {
     this.E.render = this.E.erow.map((str) => str.replace(/\t/g," ".repeat(KILO_TAB_STOP)));
+  }
+
+  /**
+   * insert single char for the row
+   * @param {int} at - the target position
+   * @param {char} c - char which will be inserted
+   * @todo handle multibyte properly
+   */
+  editorRowInsertChar(at,c){
+    if(this.E.cy == this.E.erow.length){
+      this.editorInsertRow();
+    }
+    const row = this.E.erow[this.E.cy];
+    this.E.erow[this.E.cy] = `${row.slice(0,at)}${c}${row.slice(at)}`;
+    this.editorUpdateRow();
+    this.E.dirty++;
+  }
+
+  /**
+   * delete single char for the row
+   * @param {int} at - the target position
+   * @todo handle multibyte properly
+   */
+  editorRowDelChar(at){
+    if(this.E.erow.length == 0) return;
+    if(this.E.cy == this.E.erow.length) return;
+    const row = this.E.erow[this.E.cy];
+    const newRow = `${row.slice(0,at)}${row.slice(at+1)}`;
+    if(newRow.length > 0){
+      this.E.erow[this.E.cy] = newRow;
+    } else {
+      this.E.erow.splice(this.E.cy, 1)
+      if(this.E.erow.length > 0 && this.E.cy > 0) this.E.cy--;
+    }
+    this.editorUpdateRow();
+    this.E.dirty++;
+  }
+
+  /**
+   * insert single char
+   * @param {char} c - char which will be inserted
+   * @todo handle multibyte properly
+   */
+  editorInsertChar(c){
+    this.editorRowInsertChar(this.E.cx,c);
+  }
+
+  /**
+   * insert one row
+   * @param {char} c - char which will be inserted
+   * @todo handle multibyte properly
+   */
+  editorInsertRow(){
+    this.E.erow.splice(this.E.cy,0,"");
+  }
+
+  /**
+   * delete single char
+   * @todo handle multibyte properly
+   */
+  editorDelChar(c){
+    this.editorRowDelChar(this.E.cx);
   }
 
   /**
@@ -174,45 +269,121 @@ class Kilo {
    * handle key action
    * @param {string} str - captured str (not used in this class)
    * @param {Object} key - captured key information
+   * @throws {Error}
    */
   editorReadKey(str, key) {
-    switch (key.name) {
-      case 'q':
-        if (key.ctrl) {
-          this.die("BYE",0);
-        }
-        break;
-      case 'home':
-        this.E.cx = 0;
-        break;
-      case 'end':
-        {
-          if (this.E.cy < this.E.erow.length) this.E.cx = this.E.erow[this.E.cy].length;
-        }
-        break;
-      case 'pageup':
-        this.E.cy = this.E.rowoff;
-      case 'pagedown':
-        {
-          if (key.name == 'pagedown') {
-            this.E.cy = this.E.rowoff + this.E.screenrows - 1;
-            if (this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
+    try{
+      this.E.statusmsg = key.name;
+      switch (key.name) {
+        case 'q':
+          if (key.ctrl) {
+            this.die("BYE",0);
           }
-          let times = this.E.screenrows;
-          while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
-        }
-        break;
-      case 'h':
-      case 'left':
-      case 'l':
-      case 'right':
-      case 'k':
-      case 'up':
-      case 'j':
-      case 'down':
-        this.editorMoveCursor(key.name);
+          break;
+        case 's':
+          if (key.ctrl) {
+            this.editorSave();
+          }
+          break;
+        case 'home':
+          this.E.cx = 0;
+          break;
+        case 'end':
+          if (this.E.cy < this.E.erow.length)
+            this.E.cx = this.E.erow[this.E.cy].length;
+          break;
+        case 'return':
+          if(!this.E.insert){
+            this.editorMoveCursor('down');
+          } else {
+            this.editorInsertRow();
+            this.E.cx = 0;
+            this.E.cy++;
+            this.editorUpdateRow();
+          }
+          break;
+        case 'o':
+          if(!this.E.insert){
+            if(key.sequence == "O"){
+              this.editorInsertRow();
+              this.E.cx = 0;
+              this.E.cy++;
+              this.editorUpdateRow();
+              this.E.insert = true;
+            }
+          } else {
+            this.editorInsertChar(key.sequence);
+          }
+          break;
+        case 'backspace':
+          this.editorMoveCursor('left');
+        case 'x':
+          if(this.E.insert){
+            this.editorInsertChar(key.sequence);
+            break;
+          }
+        case 'delete':
+          this.editorDelChar();
+          break;
+        case 'pageup':
+          this.E.cy = this.E.rowoff;
+        case 'pagedown':
+          {
+            if (key.name == 'pagedown') {
+              this.E.cy = this.E.rowoff + this.E.screenrows - 1;
+              if (this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
+            }
+            let times = this.E.screenrows;
+            while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
+          }
+          break;
+        case 'i':
+          if(this.E.insert){
+            this.editorInsertChar(key.sequence);
+            break;
+          }
+        case 'insert':
+          this.E.insert = true
+          break;
+        case 'h':
+        case 'l':
+        case 'k':
+        case 'j':
+          if(this.E.insert){
+            this.editorInsertChar(key.sequence);
+            break;
+          }
+        case 'left':
+        case 'right':
+        case 'up':
+        case 'down':
+          this.editorMoveCursor(key.name);
+          break;
+        case 'escape':
+          this.E.insert = false;
+          break;
+        case 'f1':
+        case 'f2':
+        case 'f3':
+        case 'f4':
+        case 'f5':
+        case 'f6':
+        case 'f7':
+        case 'f8':
+        case 'f9':
+        case 'f10':
+        case 'f11':
+        case 'f12':
+          break;
+        default:
+          this.editorSetStatusMessage(`${JSON.stringify(key)}`);
+          if(this.E.insert)
+            this.editorInsertChar(key.sequence);
+      }
+      this.editorRefreshScreen();
+    } catch(e) {
+      this.die(e);
     }
-    this.editorRefreshScreen();
   }
 
   /**
@@ -261,7 +432,7 @@ class Kilo {
    */
   editorDrawStatusBar() {
     this.abuf += "\x1b[7m"; // invert the colors. (usually black -> white)
-    const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines`;
+    const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty > 0 ? "(modified)" : ""} - ${this.E.insert ? "INSERT" : "NOT INSERT"}`;
     let len = status.length;
     const rstatus = `${this.E.cy + 1}/${this.E.erow.length}`;
     if (len > this.E.screencols) len = this.E.screencols;
