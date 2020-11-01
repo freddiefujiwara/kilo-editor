@@ -58,12 +58,13 @@ class Kilo {
       coloff: 0,
       dirty: 0,
       insert: false,
-      screenrows: process.stdout.rows - 2,
+      screenrows: process.stdout.rows - 2, //status bar and message bar
       screencols: process.stdout.columns,
       filename: argv &amp;&amp; argv.length > 0 ? argv[0] : undefined,
       statusmsg: ""
     };
     this.editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
+    this.backup = {}
     this.abuf = '';
   }
 
@@ -172,8 +173,6 @@ class Kilo {
    * @todo handle multibyte properly
    */
   editorRowDelChar(at){
-    if(this.E.erow.length == 0) return;
-    if(this.E.cy == this.E.erow.length) return;
     const row = this.E.erow[this.E.cy];
     const newRow = `${row.slice(0,at)}${row.slice(at+1)}`;
     if(newRow.length > 0){
@@ -183,7 +182,6 @@ class Kilo {
       if(this.E.erow.length > 0 &amp;&amp; this.E.cy > 0) this.E.cy--;
     }
     this.editorUpdateRow();
-    this.E.dirty++;
   }
 
   /**
@@ -192,7 +190,10 @@ class Kilo {
    * @todo handle multibyte properly
    */
   editorInsertChar(c){
+    this.backup = JSON.stringify(this.E);
     this.editorRowInsertChar(this.E.cx,c);
+    this.editorMoveCursor('right');
+    this.E.dirty++;
   }
 
   /**
@@ -201,7 +202,9 @@ class Kilo {
    * @todo handle multibyte properly
    */
   editorInsertRow(){
+    this.backup = JSON.stringify(this.E);
     this.E.erow.splice(this.E.cy,0,"");
+    this.E.dirty++;
   }
 
   /**
@@ -209,9 +212,12 @@ class Kilo {
    * @todo handle multibyte properly
    */
   editorDelChar(c){
+    if(this.E.erow.length == 0) return;
+    if(this.E.cy == this.E.erow.length) return;
+    this.backup = JSON.stringify(this.E);
     this.editorRowDelChar(this.E.cx);
+    this.E.dirty++;
   }
-
   /**
    * calculate erow cx -> rx
    *
@@ -300,113 +306,163 @@ class Kilo {
    * @throws {Error}
    */
   editorReadKey(str, key) {
+    const row = (this.E.cy >= this.E.erow.length) ? undefined : this.E.erow[this.E.cy];
     try{
-      this.E.statusmsg = key.name;
-      switch (key.name) {
-        case 'q':
-          if (key.ctrl) {
+      if(key.meta){
+        this.E.insert = false;
+      } else if(key.ctrl){
+        switch (key.name) {
+          case 'q':
             this.die("BYE",0);
-          }
-          break;
-        case 's':
-          if (key.ctrl) {
+            break;
+          case 's':
             this.editorSave();
-          }
-          break;
-        case 'home':
-          this.E.cx = 0;
-          break;
-        case 'end':
-          if (this.E.cy &lt; this.E.erow.length)
-            this.E.cx = this.E.erow[this.E.cy].length;
-          break;
-        case 'return':
-          if(!this.E.insert){
-            this.editorMoveCursor('down');
+            break;
+        }
+      } else {
+        if(!this.E.insert){
+          if(key.name === undefined){
+            switch (key.sequence) {
+              case '$':
+                if (this.E.cy &lt; this.E.erow.length)
+                  this.E.cx = this.E.erow[this.E.cy].length;
+                break;
+              case '^':
+                this.E.cx = 0;
+                break;
+            }
           } else {
-            this.editorInsertRow();
-            this.E.cx = 0;
-            this.E.cy++;
-            this.editorUpdateRow();
+            switch (key.name) {
+              case 'home':
+              case '0':
+                this.E.cx = 0;
+                break;
+              case 'end':
+                if (this.E.cy &lt; this.E.erow.length)
+                  this.E.cx = this.E.erow[this.E.cy].length;
+                break;
+              case 'return':
+                this.editorMoveCursor('down');
+                break;
+              case 'backspace':
+                this.editorMoveCursor('left');
+              case 'delete':
+              case 'x':
+                this.editorDelChar();
+                if(row !== undefined &amp;&amp; row.length == 0)
+                  this.editorMoveCursor('down');
+                break;
+              case 'escape':
+                this.E.insert = false;
+                break;
+              case 'insert':
+              case 'i':
+                this.E.insert = true;
+                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --":""} - ${JSON.stringify(key)}`);
+                this.editorRefreshScreen();
+                break;
+              case 'o':
+                if(key.sequence == "O"){
+                  this.editorInsertRow();
+                  this.editorMoveCursor('home');
+                  this.editorUpdateRow();
+                  this.editorMoveCursor('down');
+                } else {
+                  this.editorMoveCursor('down');
+                  this.editorInsertRow();
+                  this.editorMoveCursor('home');
+                  this.editorUpdateRow();
+                }
+                this.E.insert = true;
+                break;
+              case 'u':
+                const backup = this.E;
+                this.E = JSON.parse(this.backup);
+                this.backup = JSON.stringify(backup);
+                break;
+              case 'pageup':
+                this.E.cy = this.E.rowoff;
+              case 'pagedown':
+                {
+                  if (key.name == 'pagedown') {
+                    this.E.cy = this.E.rowoff + this.E.screenrows - 1;
+                    if (this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
+                  }
+                  let times = this.E.screenrows;
+                  while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
+                }
+                break;
+              case 'left':
+              case 'right':
+              case 'up':
+              case 'down':
+              case 'h':
+              case 'l':
+              case 'k':
+              case 'j':
+                this.editorMoveCursor(key.name);
+                break;
+            }
           }
-          break;
-        case 'o':
-          if(!this.E.insert){
-            if(key.sequence == "O"){
-              this.editorInsertRow();
+        } else {
+          switch (key.name) {
+            case 'home':
               this.E.cx = 0;
-              this.E.cy++;
+              break;
+            case 'end':
+              if (this.E.cy &lt; this.E.erow.length)
+                this.E.cx = this.E.erow[this.E.cy].length;
+              break;
+            case 'return':
+              this.editorInsertRow();
+              this.editorMoveCursor('home');
+              this.editorMoveCursor('down');
               this.editorUpdateRow();
-              this.E.insert = true;
-            }
-          } else {
-            this.editorInsertChar(key.sequence);
+              break;
+            case 'backspace':
+              this.editorMoveCursor('left');
+            case 'delete':
+              this.editorDelChar();
+              if(row !== undefined &amp;&amp; row.length == 0)
+                this.editorMoveCursor('down');
+              break;
+            case 'pageup':
+              this.E.cy = this.E.rowoff;
+            case 'pagedown':
+              {
+                if (key.name == 'pagedown') {
+                  this.E.cy = this.E.rowoff + this.E.screenrows - 1;
+                  if (this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
+                }
+                let times = this.E.screenrows;
+                while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
+              }
+              break;
+            case 'left':
+            case 'right':
+            case 'up':
+            case 'down':
+              this.editorMoveCursor(key.name);
+              break;
+            case 'f1':
+            case 'f2':
+            case 'f3':
+            case 'f4':
+            case 'f5':
+            case 'f6':
+            case 'f7':
+            case 'f8':
+            case 'f9':
+            case 'f10':
+            case 'f11':
+            case 'f12':
+              break;
+            default:
+              if(this.E.insert &amp;&amp; /^[\ta-z0-9!"#$%&amp;'()*+,.\/:;&lt;=>?@\[\]\\ ^_`{|}~-]$/i.test(key.sequence))
+                this.editorInsertChar(key.sequence);
           }
-          break;
-        case 'backspace':
-          this.editorMoveCursor('left');
-        case 'x':
-          if(this.E.insert){
-            this.editorInsertChar(key.sequence);
-            break;
-          }
-        case 'delete':
-          this.editorDelChar();
-          break;
-        case 'pageup':
-          this.E.cy = this.E.rowoff;
-        case 'pagedown':
-          {
-            if (key.name == 'pagedown') {
-              this.E.cy = this.E.rowoff + this.E.screenrows - 1;
-              if (this.E.cy > this.E.erow.length) this.E.cy = this.E.erow.length;
-            }
-            let times = this.E.screenrows;
-            while (times--) this.editorMoveCursor(key.name == 'pageup' ? 'up' : 'down');
-          }
-          break;
-        case 'i':
-          if(this.E.insert){
-            this.editorInsertChar(key.sequence);
-            break;
-          }
-        case 'insert':
-          this.E.insert = true
-          break;
-        case 'h':
-        case 'l':
-        case 'k':
-        case 'j':
-          if(this.E.insert){
-            this.editorInsertChar(key.sequence);
-            break;
-          }
-        case 'left':
-        case 'right':
-        case 'up':
-        case 'down':
-          this.editorMoveCursor(key.name);
-          break;
-        case 'escape':
-          this.E.insert = false;
-          break;
-        case 'f1':
-        case 'f2':
-        case 'f3':
-        case 'f4':
-        case 'f5':
-        case 'f6':
-        case 'f7':
-        case 'f8':
-        case 'f9':
-        case 'f10':
-        case 'f11':
-        case 'f12':
-          break;
-        default:
-          this.editorSetStatusMessage(`${JSON.stringify(key)}`);
-          if(this.E.insert)
-            this.editorInsertChar(key.sequence);
+        }
+        this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --":""} - ${JSON.stringify(key)}`);
       }
       this.editorRefreshScreen();
     } catch(e) {
@@ -460,9 +516,9 @@ class Kilo {
    */
   editorDrawStatusBar() {
     this.abuf += "\x1b[7m"; // invert the colors. (usually black -> white)
-    const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty > 0 ? "(modified)" : ""} - ${this.E.insert ? "INSERT" : "NOT INSERT"}`;
+    const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty > 0 ? "(modified)" : ""}`;
     let len = status.length;
-    const rstatus = `${this.E.cy + 1}/${this.E.erow.length}`;
+    const rstatus = `${parseInt((this.E.cy + 1)/this.E.erow.length * 100)}% ${this.E.cy + 1}/${this.E.erow.length}`;
     if (len > this.E.screencols) len = this.E.screencols;
     this.abuf += status.substring(0, len);
     while (len &lt; this.E.screencols) {
@@ -538,8 +594,7 @@ if (typeof module !== 'undefined' &amp;&amp; typeof module.exports !== 'undefine
   module.exports = Kilo;
 } else {
   window.Kilo = Kilo;
-}
-</code></pre>
+}</code></pre>
         </article>
     </section>
 
@@ -555,7 +610,7 @@ if (typeof module !== 'undefined' &amp;&amp; typeof module.exports !== 'undefine
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Nov 01 2020 01:14:06 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Nov 01 2020 11:08:15 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
