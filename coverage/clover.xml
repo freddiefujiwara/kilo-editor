@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1604235099932" clover="3.2.0">
-  <project timestamp="1604235099932" name="All files">
-    <metrics statements="286" coveredstatements="110" conditionals="222" coveredconditionals="87" methods="25" coveredmethods="12" elements="533" coveredelements="209" complexity="0" loc="286" ncloc="286" packages="1" files="1" classes="1"/>
+<coverage generated="1604274103666" clover="3.2.0">
+  <project timestamp="1604274103666" name="All files">
+    <metrics statements="294" coveredstatements="110" conditionals="222" coveredconditionals="87" methods="32" coveredmethods="12" elements="548" coveredelements="209" complexity="0" loc="294" ncloc="294" packages="1" files="1" classes="1"/>
     <file name="kilo.js" path="/home/runner/work/kilo-editor/kilo-editor/src/kilo.js">
-      <metrics statements="286" coveredstatements="110" conditionals="222" coveredconditionals="87" methods="25" coveredmethods="12"/>
+      <metrics statements="294" coveredstatements="110" conditionals="222" coveredconditionals="87" methods="32" coveredmethods="12"/>
       <line num="1" count="1" type="stmt"/>
       <line num="2" count="1" type="stmt"/>
       <line num="3" count="1" type="stmt"/>
@@ -275,21 +275,29 @@
       <line num="588" count="3" type="stmt"/>
       <line num="590" count="207" type="stmt"/>
       <line num="593" count="0" type="stmt"/>
-      <line num="594" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="594" count="0" type="stmt"/>
       <line num="595" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="596" count="0" type="stmt"/>
-      <line num="598" count="210" type="stmt"/>
-      <line num="599" count="210" type="stmt"/>
-      <line num="607" count="0" type="stmt"/>
-      <line num="608" count="0" type="stmt"/>
-      <line num="609" count="0" type="cond" truecount="0" falsecount="2"/>
-      <line num="610" count="0" type="stmt"/>
+      <line num="596" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="598" count="0" type="stmt"/>
+      <line num="600" count="210" type="stmt"/>
+      <line num="601" count="210" type="stmt"/>
       <line num="612" count="0" type="stmt"/>
-      <line num="613" count="0" type="stmt"/>
-      <line num="615" count="0" type="stmt"/>
-      <line num="619" count="1" type="cond" truecount="3" falsecount="1"/>
-      <line num="620" count="1" type="stmt"/>
+      <line num="614" count="0" type="stmt"/>
+      <line num="616" count="0" type="stmt"/>
+      <line num="618" count="0" type="stmt"/>
+      <line num="620" count="0" type="stmt"/>
       <line num="622" count="0" type="stmt"/>
+      <line num="624" count="0" type="stmt"/>
+      <line num="631" count="0" type="stmt"/>
+      <line num="632" count="0" type="stmt"/>
+      <line num="633" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="634" count="0" type="stmt"/>
+      <line num="636" count="0" type="stmt"/>
+      <line num="637" count="0" type="stmt"/>
+      <line num="639" count="0" type="stmt"/>
+      <line num="643" count="1" type="cond" truecount="3" falsecount="1"/>
+      <line num="644" count="1" type="stmt"/>
+      <line num="646" count="0" type="stmt"/>
     </file>
   </project>
 </coverage>
