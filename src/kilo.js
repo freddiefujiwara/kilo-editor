@@ -15,7 +15,6 @@ class Kilo {
 
     /**
      * JavaScript port for kilo.c
-     * @description
      * @param {Array} argv process.argv
      * @constructor
      * <ul>
