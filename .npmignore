@@ -8,3 +8,4 @@ Makefile
 .replit
 coverage/
 out/
+.eslintrc
