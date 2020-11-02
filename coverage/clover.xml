@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1604320488691" clover="3.2.0">
-  <project timestamp="1604320488691" name="All files">
+<coverage generated="1604320695831" clover="3.2.0">
+  <project timestamp="1604320695831" name="All files">
     <metrics statements="335" coveredstatements="121" conditionals="227" coveredconditionals="86" methods="33" coveredmethods="12" elements="595" coveredelements="219" complexity="0" loc="335" ncloc="335" packages="1" files="1" classes="1"/>
     <file name="kilo.js" path="/home/runner/work/kilo-editor/kilo-editor/src/kilo.js">
       <metrics statements="335" coveredstatements="121" conditionals="227" coveredconditionals="86" methods="33" coveredmethods="12"/>
