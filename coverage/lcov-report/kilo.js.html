@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.5% </span>
+                <span class="strong">35.55% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>123/337</span>
+                <span class='fraction'>123/346</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">37.89% </span>
+                <span class="strong">36.75% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>86/227</span>
+                <span class='fraction'>86/234</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.36% </span>
+                <span class="strong">35.29% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>12/33</span>
+                <span class='fraction'>12/34</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.12% </span>
+                <span class="strong">35.17% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>121/335</span>
+                <span class='fraction'>121/344</span>
             </div>
         
             
@@ -818,7 +818,19 @@
 <a name='L759'></a><a href='#L759'>759</a>
 <a name='L760'></a><a href='#L760'>760</a>
 <a name='L761'></a><a href='#L761'>761</a>
-<a name='L762'></a><a href='#L762'>762</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L762'></a><a href='#L762'>762</a>
+<a name='L763'></a><a href='#L763'>763</a>
+<a name='L764'></a><a href='#L764'>764</a>
+<a name='L765'></a><a href='#L765'>765</a>
+<a name='L766'></a><a href='#L766'>766</a>
+<a name='L767'></a><a href='#L767'>767</a>
+<a name='L768'></a><a href='#L768'>768</a>
+<a name='L769'></a><a href='#L769'>769</a>
+<a name='L770'></a><a href='#L770'>770</a>
+<a name='L771'></a><a href='#L771'>771</a>
+<a name='L772'></a><a href='#L772'>772</a>
+<a name='L773'></a><a href='#L773'>773</a>
+<a name='L774'></a><a href='#L774'>774</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1241,6 +1253,14 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1571,6 +1591,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -2002,8 +2026,16 @@ class Kilo {
 <span class="cstat-no" title="statement not covered" >                                if (row !== false &amp;&amp; this.prev === "y") { // yy yank</span>
 <span class="cstat-no" title="statement not covered" >                                    this.ybuf = row;</span>
                                 }
+<span class="branch-14 cbranch-no" title="branch not covered" >                            case "g":</span>
+<span class="cstat-no" title="statement not covered" >                                if (row !== false &amp;&amp; this.prev === "g") { // yy yank</span>
+<span class="cstat-no" title="statement not covered" >                                    this.E.cx = 0;</span>
+<span class="cstat-no" title="statement not covered" >                                    this.E.cy = 0;</span>
+                                } else <span class="cstat-no" title="statement not covered" >if (key.sequence === "G") {</span>
+<span class="cstat-no" title="statement not covered" >                                    this.E.cx = 0;</span>
+<span class="cstat-no" title="statement not covered" >                                    this.E.cy = this.E.erow.length - 1;</span>
+                                }
 <span class="cstat-no" title="statement not covered" >                                break;</span>
-<span class="branch-14 cbranch-no" title="branch not covered" >                            case "d":</span>
+<span class="branch-15 cbranch-no" title="branch not covered" >                            case "d":</span>
 <span class="cstat-no" title="statement not covered" >                                if (row !== false &amp;&amp; this.prev === "d") { // dd delete a row</span>
                                     const backup = <span class="cstat-no" title="statement not covered" >JSON.stringify(this.E);</span>
 &nbsp;
@@ -2017,7 +2049,7 @@ class Kilo {
 <span class="cstat-no" title="statement not covered" >                                    this.backup = backup;</span>
                                 }
 <span class="cstat-no" title="statement not covered" >                                break;</span>
-<span class="branch-15 cbranch-no" title="branch not covered" >                            case "p":</span>
+<span class="branch-16 cbranch-no" title="branch not covered" >                            case "p":</span>
 <span class="cstat-no" title="statement not covered" >                                this.editorMoveCursor("down");</span>
 <span class="cstat-no" title="statement not covered" >                                this.editorInsertRow(this.ybuf);</span>
 <span class="cstat-no" title="statement not covered" >                                this.editorUpdateRow();</span>
@@ -2049,7 +2081,7 @@ class Kilo {
                             case "j":
                                 this.editorMoveCursor(key.name);
                                 break;
-<span class="branch-26 cbranch-no" title="branch not covered" >                            default:</span>
+<span class="branch-27 cbranch-no" title="branch not covered" >                            default:</span>
 <span class="cstat-no" title="statement not covered" >                                break;</span>
                         }
                     }
@@ -2332,6 +2364,10 @@ class Kilo {
             }
 <span class="cstat-no" title="statement not covered" >            this.editorRefreshScreen();</span>
 <span class="cstat-no" title="statement not covered" >            process.stdin.on("keypress", this.editorReadKey.bind(this));</span>
+<span class="cstat-no" title="statement not covered" >            process.stdout.on("resize", <span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >                this.E.screenrows = process.stdout.rows - 2; </span>// status bar and message bar
+<span class="cstat-no" title="statement not covered" >                this.E.screencols = process.stdout.columns;</span>
+            });
         } catch (e) {
 <span class="cstat-no" title="statement not covered" >            this.die(e);</span>
         }
@@ -2347,7 +2383,7 @@ class Kilo {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Mon Nov 02 2020 12:38:15 GMT+0000 (Coordinated Universal Time)
+                at Mon Nov 02 2020 13:06:41 GMT+0000 (Coordinated Universal Time)
             </div>
         </div>
         <script src="prettify.js"></script>
