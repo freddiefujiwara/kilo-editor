@@ -31,6 +31,12 @@ describe("Kilo", () => {
             qi.editorOpen();
         }).toThrow(/no such file or directory/u);
     });
+    it(" editorSave() : can save properly", () => {
+        const k = new Kilo(["LICENSE"]);
+        expect(k.editorSave).toBeInstanceOf(Function);
+        k.editorOpen();
+        k.editorSave();
+    });
     it(" enableRawMode() : can set tty from normal to raw mode", () => {
         expect(Kilo.enableRawMode).toBeInstanceOf(Function);
         Kilo.enableRawMode();
@@ -189,6 +195,10 @@ describe("Kilo", () => {
         expect(Kilo.editorRowCxToRx).toBeInstanceOf(Function);
         expect(Kilo.editorRowCxToRx("", 0)).toEqual(0);
     });
+    it(" editorUpdateSyntax() : can markup and colored properly", () => {
+        expect(Kilo.editorUpdateSyntax).toBeInstanceOf(Function);
+        expect(Kilo.editorUpdateSyntax("test")).toEqual("test");
+    });
     it(" editorMoveCursor() : can calculate proper cursor position", () => {
         const k = new Kilo(["LICENSE"]);
 
@@ -227,8 +237,6 @@ describe("Kilo", () => {
     it(" editorRowDelChar(at) : can delete char at 'at'", () => {
         const k = new Kilo(["LICENSE"]);
 
-        console.log(k);
-
         expect(k.editorRowDelChar).toBeInstanceOf(Function);
         k.editorRowDelChar(0);
 
@@ -240,6 +248,12 @@ describe("Kilo", () => {
         k.editorRowInsertChar(0, "");
 
     });
+    it(" main : can run properly", () => {
+        const k = new Kilo(["LICENSE"]);
+
+        expect(k.main).toBeInstanceOf(Function);
+        k.main();
+    });
     beforeAll(() => {
         variables.error = console.error;
         variables.exit = process.exit;
@@ -249,6 +263,8 @@ describe("Kilo", () => {
         variables.setRawMode = process.stdin.setRawMode;
         variables.resume = process.stdin.resume;
         variables.write = process.stdout.write;
+        variables.outon = process.stdout.on;
+        variables.inon = process.stdin.on;
 
         console.error = str => {};
         process.exit = status => {};
@@ -258,6 +274,8 @@ describe("Kilo", () => {
         process.stdin.setRawMode = b => {};
         process.stdin.resume = () => {};
         process.stdout.write = (buf, len) => {};
+        process.stdout.on = func => {};
+        process.stdin.on = func => {};
     });
     afterAll(() => {
         console.error = variables.error;
@@ -268,5 +286,7 @@ describe("Kilo", () => {
         process.stdin.setRawMode = variables.setRawMode;
         process.stdin.resume = variables.resume;
         process.stdout.write = variables.write;
+        process.stdout.on = variables.outon;
+        process.stdin.on = variables.inon;
     });
 });
