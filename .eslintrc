@@ -1,8 +1,18 @@
 {
-  "extends": ["eslint"],
+  "plugins" : ["jest"],
+  "env": {
+    "jest/globals": true
+  },
+  "extends" : ["eslint"],
   "rules": {
     "no-console":0,
     "no-process-exit":0,
     "no-fallthrough":0
-  }
+  },
+  "overrides": [{
+    "files": [ "__tests__/*.js" ],
+    "rules": {
+      "no-unused-vars":0
+    }
+  }]
 }

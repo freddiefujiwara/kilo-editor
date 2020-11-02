@@ -6,7 +6,6 @@ const os = require("os");
 const KILO_TAB_STOP = 8;
 const MULTI_BYTE = 2;
 
-
 /**
  * @classdesc This is Kilo class
  * @constructor
@@ -157,12 +156,18 @@ class Kilo {
      * @returns {void}
      */
     editorRowInsertChar(at, c) {
+        let pos = at;
+
         if (this.E.cy === this.E.erow.length) {
             this.editorInsertRow();
         }
         const row = this.E.erow[this.E.cy];
 
-        this.E.erow[this.E.cy] = `${row.slice(0, at)}${c}${row.slice(at)}`;
+        if (at < 0 || at > row.length) {
+            pos = row.length;
+        }
+
+        this.E.erow[this.E.cy] = `${row.slice(0, pos)}${c}${row.slice(pos)}`;
         this.editorUpdateRow();
         this.E.dirty++;
     }
@@ -175,6 +180,10 @@ class Kilo {
      */
     editorRowDelChar(at) {
         const row = this.E.erow[this.E.cy];
+
+        if (this.E.erow.length <= this.E.cy) {
+            return;
+        }
         const newRow = `${row.slice(0, at)}${row.slice(at + 1)}`;
 
         if (newRow.length > 0) {

@@ -1,6 +1,9 @@
+"use strict";
 const Kilo = require("../src/kilo");
 
 describe("Kilo", () => {
+    const variables = {};
+
     it(" constructor() : can create new instance", () => {
         const k = new Kilo();
 
@@ -22,19 +25,19 @@ describe("Kilo", () => {
         expect(k.E.erow.length).toEqual(21);
 
         // no such file or directory
-        const t = () => {
+        expect(() => {
             const qi = new Kilo("__tests__/testData.csv");
 
             qi.editorOpen();
-        };
-
-        expect(t).toThrow(/no such file or directory/);
+        }).toThrow(/no such file or directory/u);
     });
     it(" enableRawMode() : can set tty from normal to raw mode", () => {
         expect(Kilo.enableRawMode).toBeInstanceOf(Function);
+        Kilo.enableRawMode();
     });
     it(" disableRawMode() : can set tty from raw to normal mode", () => {
         expect(Kilo.disableRawMode).toBeInstanceOf(Function);
+        Kilo.disableRawMode();
     });
     it(" editorScroll() : can culculate scroll", () => {
         const k = new Kilo();
@@ -140,6 +143,7 @@ describe("Kilo", () => {
         const k = new Kilo();
 
         expect(k.editorRefreshScreen).toBeInstanceOf(Function);
+        k.editorRefreshScreen();
     });
     it(" editorDrawStatusBar() : can draw lines", () => {
         const k = new Kilo(["LICENSE"]);
@@ -183,10 +187,86 @@ describe("Kilo", () => {
     });
     it(" editorRowCxToRx() : can convert cx -> rx", () => {
         expect(Kilo.editorRowCxToRx).toBeInstanceOf(Function);
+        expect(Kilo.editorRowCxToRx("", 0)).toEqual(0);
     });
     it(" editorMoveCursor() : can calculate proper cursor position", () => {
         const k = new Kilo(["LICENSE"]);
 
+        k.editorMoveCursor("up");
+
         expect(k.editorMoveCursor).toBeInstanceOf(Function);
+    });
+    it(" die() : can exit with proper status code", () => {
+        const k = new Kilo(["LICENSE"]);
+
+        expect(k.die).toBeInstanceOf(Function);
+        k.die();
+
+    });
+    it(" editorDelChar() : can delete char", () => {
+        const k = new Kilo(["LICENSE"]);
+
+        expect(k.editorDelChar).toBeInstanceOf(Function);
+        k.editorDelChar();
+
+    });
+    it(" editorInsertRow(insert) : can insert row", () => {
+        const k = new Kilo(["LICENSE"]);
+
+        expect(k.editorInsertRow).toBeInstanceOf(Function);
+        k.editorInsertRow();
+
+    });
+    it(" editorInsertChar(c) : can insert c", () => {
+        const k = new Kilo(["LICENSE"]);
+
+        expect(k.editorInsertChar).toBeInstanceOf(Function);
+        k.editorInsertChar("");
+
+    });
+    it(" editorRowDelChar(at) : can delete char at 'at'", () => {
+        const k = new Kilo(["LICENSE"]);
+
+        console.log(k);
+
+        expect(k.editorRowDelChar).toBeInstanceOf(Function);
+        k.editorRowDelChar(0);
+
+    });
+    it(" editorRowInsertChar(at,c) : can insert char at 'at'", () => {
+        const k = new Kilo(["LICENSE"]);
+
+        expect(k.editorRowInsertChar).toBeInstanceOf(Function);
+        k.editorRowInsertChar(0, "");
+
+    });
+    beforeAll(() => {
+        variables.error = console.error;
+        variables.exit = process.exit;
+        variables.cursorTo = process.stdout.cursorTo;
+        variables.clearScreenDown = process.stdout.clearScreenDown;
+        variables.isTTY = process.stdin.isTTY;
+        variables.setRawMode = process.stdin.setRawMode;
+        variables.resume = process.stdin.resume;
+        variables.write = process.stdout.write;
+
+        console.error = str => {};
+        process.exit = status => {};
+        process.stdout.cursorTo = (x, y) => {};
+        process.stdout.clearScreenDown = () => {};
+        process.stdin.isTTY = true;
+        process.stdin.setRawMode = b => {};
+        process.stdin.resume = () => {};
+        process.stdout.write = (buf, len) => {};
+    });
+    afterAll(() => {
+        console.error = variables.error;
+        process.exit = variables.exit;
+        process.stdout.cursorTo = variables.cursorTo;
+        process.stdout.clearScreenDown = variables.clearScreenDown;
+        process.stdin.isTTY = variables.isTTY;
+        process.stdin.setRawMode = variables.setRawMode;
+        process.stdin.resume = variables.resume;
+        process.stdout.write = variables.write;
     });
 });
