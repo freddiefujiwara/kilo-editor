@@ -701,7 +701,7 @@ class Kilo {
                     if (welcomlen > this.E.screencols) {
                         welcomlen = this.E.screencols;
                     }
-                    let padding = parseInt((this.E.screencols - welcomlen, 10) / 2, 10);
+                    let padding = parseInt((this.E.screencols - welcomlen) / 2, 10);
 
                     if (padding > 0) {
                         this.abuf += "~";
@@ -713,6 +713,7 @@ class Kilo {
                     this.abuf += welcome;
                 } else {
                     this.abuf += "~";
+
                 }
             } else {
                 const row = this.E.render[filerow];
