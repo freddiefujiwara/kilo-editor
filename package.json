@@ -7,8 +7,8 @@
   "scripts": {
     "test": "npx jest --collect-coverage",
     "build": "npx jsdoc src/",
-    "lint": "npx eslint bin/ src/",
-    "fix": "npx eslint bin/ src/ --fix"
+    "lint": "npx eslint src/",
+    "fix": "npx eslint src/ --fix"
   },
   "repository": {
     "type": "git",
