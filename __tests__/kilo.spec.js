@@ -33,6 +33,7 @@ describe("Kilo", () => {
     });
     it(" editorSave() : can save properly", () => {
         const k = new Kilo(["LICENSE"]);
+
         expect(k.editorSave).toBeInstanceOf(Function);
         k.editorOpen();
         k.editorSave();
