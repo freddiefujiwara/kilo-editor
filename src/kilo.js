@@ -421,6 +421,14 @@ class Kilo {
                                 if (row !== false && this.prev === "y") { // yy yank
                                     this.ybuf = row;
                                 }
+                            case "g":
+                                if (row !== false && this.prev === "g") { // yy yank
+                                    this.E.cx = 0;
+                                    this.E.cy = 0;
+                                } else if (key.sequence === "G") {
+                                    this.E.cx = 0;
+                                    this.E.cy = this.E.erow.length - 1;
+                                }
                                 break;
                             case "d":
                                 if (row !== false && this.prev === "d") { // dd delete a row
@@ -751,6 +759,10 @@ class Kilo {
             }
             this.editorRefreshScreen();
             process.stdin.on("keypress", this.editorReadKey.bind(this));
+            process.stdout.on("resize", () => {
+                this.E.screenrows = process.stdout.rows - 2; // status bar and message bar
+                this.E.screencols = process.stdout.columns;
+            });
         } catch (e) {
             this.die(e);
         }

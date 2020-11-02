@@ -1,6 +1,6 @@
 {
   "name": "kilo-editor",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "JavaScript port for kilo.c",
   "main": "src/kilo.js",
   "bin": "bin/kilo.js",
