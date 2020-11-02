@@ -1,6 +1,6 @@
 {
   "name": "kilo-editor",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "JavaScript port for kilo.c",
   "main": "src/kilo.js",
   "bin": "bin/kilo.js",
@@ -23,8 +23,7 @@
     "url": "https://github.com/freddiefujiwara/kilo-editor/issues"
   },
   "homepage": "https://github.com/freddiefujiwara/kilo-editor#readme",
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "eslint": "^7.12.1",
     "eslint-config-eslint": "^6.0.0",
