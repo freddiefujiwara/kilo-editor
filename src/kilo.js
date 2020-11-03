@@ -24,33 +24,33 @@ class Kilo {
      */
     constructor(argv) {
         readline.emitKeypressEvents(process.stdin);
-        this.E = {
-            cx: 0,
-            rx: 0,
-            cy: 0,
-            sx: [],
-            sy: [],
-            xi: 0,
-            erow: [],
-            render: [],
-            rowoff: 0,
-            coloff: 0,
-            dirty: 0,
-            insert: false,
-            search: false,
-            screenrows: process.stdout.rows - 2, // status bar and message bar
-            screencols: process.stdout.columns,
-            statusmsg: ""
+        this.E = { // editorConfig
+            cx: 0, // cursor position x
+            cy: 0, // cursor position y
+            rx: 0, // rendered cursor position x
+            rowoff: 0, // row offset
+            coloff: 0, // column offset
+            erow: [], // editing row
+            render: [], // rendering row
+            screenrows: process.stdout.rows - 2, // screen size(rows) -  status bar and message bar
+            screencols: process.stdout.columns, // screen size(columns)
+            statusmsg: "", // status message
+            dirty: 0 // modified flag
         };
         if (argv && argv.length > 0) {
             this.E.filename = argv[0];
         }
         this.editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
-        this.backup = {};
-        this.abuf = "";
-        this.sbuf = "";
-        this.ybuf = "";
-        this.prev = "";
+        this.backup = {}; // for undo
+        this.insert = false; // insert mode
+        this.search = false; // insert mode
+        this.sx = [];// searched cursor position x
+        this.sy = []; // searched cursor position y
+        this.si = 0; // searched index
+        this.abuf = ""; // for draw
+        this.sbuf = ""; // for search
+        this.ybuf = ""; // for yank
+        this.prev = ""; // for 2 setp commnd ex) dd yy
     }
 
     /**
@@ -336,11 +336,11 @@ class Kilo {
 
         try {
             if (key.meta) {
-                this.E.insert = false;
-                this.E.search = false;
-                this.E.sx = [];
-                this.E.sy = [];
-                this.E.si = 0;
+                this.insert = false;
+                this.search = false;
+                this.sx = [];
+                this.sy = [];
+                this.si = 0;
                 this.sbuf = "";
             } else if (key.ctrl) {
                 switch (key.name) {
@@ -354,7 +354,7 @@ class Kilo {
                         break;
                 }
             } else {
-                if (!this.E.insert && !this.E.search) { // not insert mode
+                if (!this.insert && !this.search) { // not insert mode
                     if (typeof key.name === "undefined") { // not insert and not alphabet
                         switch (key.sequence) {
                             case "$":
@@ -366,7 +366,7 @@ class Kilo {
                                 this.E.cx = 0;
                                 break;
                             case "/":
-                                this.E.search = true;
+                                this.search = true;
                                 break;
                             default:
                                 break;
@@ -395,14 +395,14 @@ class Kilo {
                                 }
                                 break;
                             case "escape":
-                                this.E.insert = false;
+                                this.insert = false;
                                 break;
                             case "a":
                                 this.editorMoveCursor("right");
                             case "insert":
                             case "i":
-                                this.E.insert = true;
-                                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --" : ""}`);
+                                this.insert = true;
+                                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.insert ? "-- INSERT --" : ""}`);
                                 this.editorRefreshScreen();
                                 break;
                             case "o":
@@ -416,7 +416,7 @@ class Kilo {
                                     this.E.cx = 0;
                                     this.editorUpdateRow();
                                 }
-                                this.E.insert = true;
+                                this.insert = true;
                                 break;
                             case "u":
                                 {
@@ -490,50 +490,50 @@ class Kilo {
                         }
                     }
                     this.prev = key.name;
-                } else if (this.E.search && !this.E.insert) { // search mode
+                } else if (this.search && !this.insert) { // search mode
                     switch (key.name) {
                         case "backspace":
                         case "delete":
                             this.sbuf = "";
                             break;
                         case "return":
-                            this.E.search = false;
-                            this.E.sx = [];
-                            this.E.sy = [];
-                            this.E.si = 0;
+                            this.search = false;
+                            this.sx = [];
+                            this.sy = [];
+                            this.si = 0;
                             this.sbuf = "";
                             break;
                         case "right":
                         case "left":
                             if (key.name === "right") {
-                                this.E.si++;
+                                this.si++;
                             } else {
-                                this.E.si--;
+                                this.si--;
                             }
-                            if (this.E.si >= this.E.sx.length) {
-                                this.E.si = 0;
+                            if (this.si >= this.sx.length) {
+                                this.si = 0;
                             }
-                            if (this.E.si < 0) {
-                                this.E.si = this.E.sx.length - 1;
+                            if (this.si < 0) {
+                                this.si = this.sx.length - 1;
                             }
                         default:
                             if (/^[\ta-z0-9!"#$%&'()*+,./:;<=>?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {
                                 this.sbuf += key.sequence;
-                                this.E.sx = [];
-                                this.E.sy = [];
-                                this.E.si = 0;
+                                this.sx = [];
+                                this.sy = [];
+                                this.si = 0;
                                 this.E.erow.forEach((r, y) => {
                                     const match = r.match(new RegExp(this.sbuf, "ui"));
 
                                     if (match) {
-                                        this.E.sx.push(match.index);
-                                        this.E.sy.push(y);
+                                        this.sx.push(match.index);
+                                        this.sy.push(y);
                                     }
                                 });
                             }
-                            if (this.E.sx.length > this.E.si) {
-                                this.E.cx = this.E.sx[this.E.si];
-                                this.E.cy = this.E.sy[this.E.si];
+                            if (this.sx.length > this.si) {
+                                this.E.cx = this.sx[this.si];
+                                this.E.cy = this.sy[this.si];
                             }
                     }
                 } else { // insert mode
@@ -584,14 +584,14 @@ class Kilo {
                             this.editorMoveCursor(key.name);
                             break;
                         default:
-                            if (this.E.insert && /^[\ta-z0-9!"#$%&'()*+,./:;<=>?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {
+                            if (this.insert && /^[\ta-z0-9!"#$%&'()*+,./:;<=>?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {
                                 this.editorInsertChar(key.sequence);
                             }
                     }
                 }
-                const search = this.E.search ? `/${this.sbuf} (${this.E.sx.length}) found <-prev:next->)` : "";
+                const search = this.search ? `/${this.sbuf} (${this.sx.length}) found <-prev:next->)` : "";
 
-                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${search} - ${this.E.insert ? "-- INSERT --" : ""}`);
+                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${search} - ${this.insert ? "-- INSERT --" : ""}`);
             }
             this.editorRefreshScreen();
         } catch (e) {
