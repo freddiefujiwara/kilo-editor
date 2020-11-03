@@ -49,10 +49,8 @@ describe("Kilo", () => {
         expect(variables.k.editorScroll).toBeInstanceOf(Function);
     });
     it(" editorReadKey(str,key) : can switch regarding each input", () => {
-        variables.k.E.screenrows = 10;
-        variables.k.E.screencols = 10;
         variables.k.editorOpen();
-        //variables.k.editorRefreshScreen = () => {};
+
         expect(variables.k.editorReadKey).toBeInstanceOf(Function);
 
         // vertical cursor move
@@ -62,28 +60,28 @@ describe("Kilo", () => {
 
         variables.k.editorReadKey("", { name: "pagedown" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(19);
-        expect(variables.k.E.rowoff).toEqual(10);
+        expect(variables.k.E.cy).toEqual(15);
+        expect(variables.k.E.rowoff).toEqual(8);
 
-        variables.k.editorReadKey("", { name: "down" });
+        variables.k.editorReadKey("", { name: "j" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(20);
-        expect(variables.k.E.rowoff).toEqual(11);
+        expect(variables.k.E.cy).toEqual(16);
+        expect(variables.k.E.rowoff).toEqual(9);
 
         variables.k.editorReadKey("", { name: "pagedown" });
         variables.k.editorScroll();
         expect(variables.k.E.cy).toEqual(21);
-        expect(variables.k.E.rowoff).toEqual(12);
+        expect(variables.k.E.rowoff).toEqual(14);
 
         variables.k.editorReadKey("", { name: "up" });
         variables.k.editorScroll();
         expect(variables.k.E.cy).toEqual(20);
-        expect(variables.k.E.rowoff).toEqual(12);
+        expect(variables.k.E.rowoff).toEqual(14);
 
         variables.k.editorReadKey("", { name: "pageup" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(2);
-        expect(variables.k.E.rowoff).toEqual(2);
+        expect(variables.k.E.cy).toEqual(6);
+        expect(variables.k.E.rowoff).toEqual(6);
 
         variables.k.editorReadKey("", { name: "pageup" });
         variables.k.editorScroll();
@@ -106,7 +104,7 @@ describe("Kilo", () => {
         expect(variables.k.E.cx).toEqual(10);
         expect(variables.k.E.coloff).toEqual(2);
 
-        variables.k.editorReadKey("", { name: "right" });
+        variables.k.editorReadKey("", { name: "l" });
         variables.k.editorScroll();
         expect(variables.k.E.cx).toEqual(11);
         expect(variables.k.E.coloff).toEqual(2);
@@ -117,7 +115,7 @@ describe("Kilo", () => {
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.coloff).toEqual(0);
 
-        variables.k.editorReadKey("", { name: "left" });
+        variables.k.editorReadKey("", { name: "h" });
         variables.k.editorScroll();
         expect(variables.k.E.cy).toEqual(0);
         expect(variables.k.E.cx).toEqual(11);
@@ -135,11 +133,41 @@ describe("Kilo", () => {
         variables.k.editorScroll();
         variables.k.editorReadKey("", { name: "end" });
         variables.k.editorScroll();
-        variables.k.editorReadKey("", { name: "up" });
+        variables.k.editorReadKey("", { name: "k" });
         variables.k.editorScroll();
         expect(variables.k.E.cy).toEqual(1);
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.coloff).toEqual(0);
+
+        // for empty files
+        variables.k = new Kilo();
+        [
+            { name: "up" },
+            { name: "k" },
+            { name: "down" },
+            { name: "return" },
+            { name: "j" },
+            { name: "right" },
+            { name: "l" },
+            { name: "left" },
+            { name: "h" },
+            { name: "home" },
+            { sequence: "^" },
+            { name: "end" },
+            { sequence: "$" },
+            { name: "g", sequence: "g" },
+            { name: "g", sequence: "G" }
+        ].forEach(key => {
+            expect(variables.k.E.cy).toEqual(0);
+            expect(variables.k.E.cx).toEqual(0);
+            expect(variables.k.E.rowoff).toEqual(0);
+            expect(variables.k.E.coloff).toEqual(0);
+            expect(variables.k.E.dirty).toEqual(0);
+            expect(variables.k.abuf).toEqual("");
+            expect(variables.k.ybuf).toEqual("");
+            expect(variables.k.sbuf).toEqual("");
+            expect(variables.k.prev).toEqual("");
+        });
     });
     it(" editorRefreshScreen() : can refresh the screen", () => {
         expect(variables.k.editorRefreshScreen).toBeInstanceOf(Function);
@@ -318,8 +346,8 @@ describe("Kilo", () => {
         process.stdout.write = jest.fn();
         process.stdout.on = jest.fn();
         process.stdin.on = jest.fn();
-        process.stdout.rows = 20;
-        process.stdout.columns = 20;
+        process.stdout.rows = 10;
+        process.stdout.columns = 10;
     });
     afterAll(() => {
         console.error = variables.error;
