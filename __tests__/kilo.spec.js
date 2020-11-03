@@ -31,7 +31,7 @@ describe("Kilo", () => {
         expect(variables.k.editorSave).toBeInstanceOf(Function);
         variables.k.editorOpen();
         variables.k.editorSave();
-        expect(variables.k.E.statusmsg).toEqual("1083 bytes written to disk");
+        expect(variables.k.E.statusmsg).toMatch(/\d+ bytes written to disk/u);
 
         variables.k = new Kilo(["__test__/testData.csv"]);
         variables.k.editorSave();
