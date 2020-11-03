@@ -30,12 +30,16 @@ describe("Kilo", () => {
     it(" editorSave() : can save properly", () => {
         expect(variables.k.editorSave).toBeInstanceOf(Function);
         variables.k.editorOpen();
+        variables.k.E.dirty = 1;
         variables.k.editorSave();
         expect(variables.k.E.statusmsg).toMatch(/\d+ bytes written to disk/u);
+        expect(variables.k.E.dirty).toEqual(0);
 
         variables.k = new Kilo(["__test__/testData.csv"]);
+        variables.k.E.dirty = 1;
         variables.k.editorSave();
         expect(variables.k.E.statusmsg).toEqual("Error:ENOENT: no such file or directory, open '__test__/testData.csv'");
+        expect(variables.k.E.dirty).toEqual(1);
     });
     it(" enableRawMode() : can set tty from normal to raw mode", () => {
         expect(Kilo.enableRawMode).toBeInstanceOf(Function);
@@ -139,6 +143,36 @@ describe("Kilo", () => {
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.coloff).toEqual(0);
 
+        // for meta
+        variables.k.editorReadKey("", { meta: true });
+        expect(variables.k.insert).toBeFalsy();
+        expect(variables.k.search).toBeFalsy();
+        expect(variables.k.sx.length).toEqual(0);
+        expect(variables.k.sy.length).toEqual(0);
+        expect(variables.k.si).toEqual(0);
+        expect(variables.k.sbuf).toEqual("");
+
+        // for ctrl
+        // ctrl + q -> die("BYE",0);
+        variables.k.editorReadKey("", { ctrl: true, name: "q" });
+        expect(variables.k.abuf).toEqual("");
+        expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 5000);
+        expect(process.stdout.cursorTo).toHaveBeenCalledTimes(1);
+        expect(process.stdout.cursorTo).toHaveBeenLastCalledWith(0, 0);
+        expect(process.stdout.clearScreenDown).toHaveBeenCalledTimes(1);
+        expect(process.stdout.clearScreenDown).toHaveBeenLastCalledWith();
+        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(1);
+        expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenLastCalledWith(0);
+        expect(console.error).toHaveBeenCalledTimes(1);
+        expect(console.error).toHaveBeenLastCalledWith("BYE");
+
+        // ctrl + s -> editorSave
+        variables.k.editorReadKey("", { ctrl: true, name: "s" });
+        expect(variables.k.E.statusmsg).toMatch(/\d+ bytes written to disk/u);
+        expect(variables.k.E.dirty).toEqual(0);
+
         // for empty files
         variables.k = new Kilo();
         [
@@ -232,7 +266,7 @@ describe("Kilo", () => {
         expect(process.stdout.cursorTo).toHaveBeenLastCalledWith(0, 0);
         expect(process.stdout.clearScreenDown).toHaveBeenCalledTimes(1);
         expect(process.stdout.clearScreenDown).toHaveBeenLastCalledWith();
-        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(3);
+        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(1);
         expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
         expect(process.exit).toHaveBeenCalledTimes(1);
         expect(process.exit).toHaveBeenLastCalledWith(1);
@@ -246,7 +280,7 @@ describe("Kilo", () => {
         expect(process.stdout.cursorTo).toHaveBeenLastCalledWith(0, 0);
         expect(process.stdout.clearScreenDown).toHaveBeenCalledTimes(2);
         expect(process.stdout.clearScreenDown).toHaveBeenLastCalledWith();
-        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(4);
+        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(2);
         expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
         expect(process.exit).toHaveBeenCalledTimes(2);
         expect(process.exit).toHaveBeenLastCalledWith(0);
@@ -318,6 +352,19 @@ describe("Kilo", () => {
     beforeEach(() => {
         jest.useFakeTimers();
         variables.k = new Kilo(["LICENSE"]);
+
+        console.error = jest.fn();
+        process.exit = jest.fn();
+        process.stdout.cursorTo = jest.fn();
+        process.stdout.clearScreenDown = jest.fn();
+        process.stdin.isTTY = true;
+        process.stdin.setRawMode = jest.fn();
+        process.stdin.resume = jest.fn();
+        process.stdout.write = jest.fn();
+        process.stdout.on = jest.fn();
+        process.stdin.on = jest.fn();
+        process.stdout.rows = 10;
+        process.stdout.columns = 10;
     });
     afterEach(() => {
         delete variables.k;
@@ -335,19 +382,6 @@ describe("Kilo", () => {
         variables.inon = process.stdin.on;
         variables.rows = process.stdout.rows;
         variables.columns = process.stdout.columns;
-
-        console.error = jest.fn();
-        process.exit = jest.fn();
-        process.stdout.cursorTo = jest.fn();
-        process.stdout.clearScreenDown = jest.fn();
-        process.stdin.isTTY = true;
-        process.stdin.setRawMode = jest.fn();
-        process.stdin.resume = jest.fn();
-        process.stdout.write = jest.fn();
-        process.stdout.on = jest.fn();
-        process.stdin.on = jest.fn();
-        process.stdout.rows = 10;
-        process.stdout.columns = 10;
     });
     afterAll(() => {
         console.error = variables.error;
