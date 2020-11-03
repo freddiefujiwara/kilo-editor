@@ -57,6 +57,9 @@ describe("Kilo", () => {
 
         expect(variables.k.editorReadKey).toBeInstanceOf(Function);
 
+        //
+        // -- NOMALMODE --
+        //
         // vertical cursor move
         variables.k.editorReadKey("", { name: "down" });
         variables.k.editorScroll();
@@ -142,6 +145,7 @@ describe("Kilo", () => {
         expect(variables.k.E.cy).toEqual(1);
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.coloff).toEqual(0);
+        variables.k.editorReadKey("", { name: "k" }); // back to 0,0
 
         // for meta
         variables.k.editorReadKey("", { meta: true });
@@ -168,10 +172,35 @@ describe("Kilo", () => {
         expect(console.error).toHaveBeenCalledTimes(1);
         expect(console.error).toHaveBeenLastCalledWith("BYE");
 
+        variables.k.editorReadKey("", { ctrl: true, name: "h" }); // ctrl + "wrong" key
+        expect(process.stdout.cursorTo).toHaveBeenCalledTimes(1); // no thing
+
         // ctrl + s -> editorSave
         variables.k.editorReadKey("", { ctrl: true, name: "s" });
         expect(variables.k.E.statusmsg).toMatch(/\d+ bytes written to disk/u);
         expect(variables.k.E.dirty).toEqual(0);
+
+        // for symbol ex) "$","^"
+        variables.k.editorReadKey("$", { sequence: "$" });
+        expect(variables.k.E.cx).toEqual(11);
+        expect(variables.k.E.cy).toEqual(0);
+        variables.k.editorReadKey("^", { sequence: "^" });
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
+        variables.k.editorReadKey("", { name: "j" }); // go to 0,1
+        variables.k.editorReadKey("$", { sequence: "$" });
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(1);
+        variables.k.editorReadKey("^", { sequence: "^" });
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(1);
+        variables.k.editorReadKey("", { name: "k" }); // go to 0,0
+        variables.k.editorReadKey("/", { sequence: "/" }); // search mode
+        expect(variables.k.search).toBeTruthy();
+        variables.k.editorReadKey("", { meta: true }); // go back to NORMAL MODE
+        variables.k.editorReadKey("[", { sequence: "[" }); // wrong symbol
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
 
         // for empty files
         variables.k = new Kilo();
@@ -202,6 +231,13 @@ describe("Kilo", () => {
             expect(variables.k.sbuf).toEqual("");
             expect(variables.k.prev).toEqual("");
         });
+
+        //
+        // -- SEARCH MODE --
+        //
+        //
+        // -- INSERT --
+        //
     });
     it(" editorRefreshScreen() : can refresh the screen", () => {
         expect(variables.k.editorRefreshScreen).toBeInstanceOf(Function);
