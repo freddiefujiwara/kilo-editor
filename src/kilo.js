@@ -66,7 +66,7 @@ class Kilo {
         process.stdout.clearScreenDown();
         Kilo.disableRawMode();
         console.error(e);
-        process.exit(status || 1);
+        process.exit(typeof status === "undefined" ? 1 : parseInt(status, 10));
     }
 
     /**
@@ -431,12 +431,12 @@ class Kilo {
                                     this.ybuf = row;
                                 }
                             case "g":
-                                if (row !== false && this.prev === "g") { // yy yank
+                                if (key.sequence === "G") {
+                                    this.E.cx = 0;
+                                    this.E.cy = this.E.erow.length > 0 ? this.E.erow.length - 1 : 0;
+                                } else if (row !== false && this.prev === "g") { // gg  to top
                                     this.E.cx = 0;
                                     this.E.cy = 0;
-                                } else if (key.sequence === "G") {
-                                    this.E.cx = 0;
-                                    this.E.cy = this.E.erow.length - 1;
                                 }
                                 break;
                             case "d":
