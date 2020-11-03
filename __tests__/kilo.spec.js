@@ -213,6 +213,13 @@ describe("Kilo", () => {
         variables.k.editorDrawStatusBar();
         expect(variables.k.abuf.length).not.toBe(0);
     });
+    it(" editorSetStatusMessage : can set statusmsg properly", () => {
+        expect(variables.k.editorSetStatusMessage).toBeInstanceOf(Function);
+        variables.k.editorSetStatusMessage("BYE");
+        expect(variables.k.E.statusmsg).toBe("BYE");
+        jest.runAllTimers();
+        expect(variables.k.E.statusmsg).toBe("");
+    });
     it(" editorDrawMessageBar() : can draw lines", () => {
         expect(variables.k.editorDrawMessageBar).toBeInstanceOf(Function);
         expect(variables.k.abuf.length).toBe(0);
@@ -244,6 +251,12 @@ describe("Kilo", () => {
     it(" editorRowCxToRx() : can convert cx -> rx", () => {
         expect(Kilo.editorRowCxToRx).toBeInstanceOf(Function);
         expect(Kilo.editorRowCxToRx("", 0)).toEqual(0);
+        expect(Kilo.editorRowCxToRx("\ta\t", 0)).toEqual(0);
+        expect(Kilo.editorRowCxToRx("\ta\t", 1)).toEqual(8);
+        expect(Kilo.editorRowCxToRx("\ta\t", 2)).toEqual(9);
+        expect(Kilo.editorRowCxToRx("\ta\t", 3)).toEqual(16);
+        expect(Kilo.editorRowCxToRx(decodeURIComponent("%E3%82%AE%E3%83%83%E3%83%88%E3%83%8F%E3%83%96"), 0)).toEqual(0); // url encoded "GitHub" in Japanese
+        expect(Kilo.editorRowCxToRx(decodeURIComponent("%E3%82%AE%E3%83%83%E3%83%88%E3%83%8F%E3%83%96"), 1)).toEqual(2);
     });
     it(" editorUpdateSyntax() : can markup and colored properly", () => {
         expect(Kilo.editorUpdateSyntax).toBeInstanceOf(Function);
@@ -367,6 +380,8 @@ describe("Kilo", () => {
         process.stdout.columns = 10;
     });
     afterEach(() => {
+        jest.runOnlyPendingTimers();
+        jest.useRealTimers();
         delete variables.k;
     });
     beforeAll(() => {
