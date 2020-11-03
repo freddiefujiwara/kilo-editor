@@ -194,7 +194,33 @@ describe("Kilo", () => {
     });
     it(" die() : can exit with proper status code", () => {
         expect(variables.k.die).toBeInstanceOf(Function);
+        // w/o status
         variables.k.die();
+        expect(variables.k.abuf).toEqual("");
+        expect(setTimeout).toHaveBeenCalledTimes(1);
+        expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 5000);
+        expect(process.stdout.cursorTo).toHaveBeenCalledTimes(1);
+        expect(process.stdout.cursorTo).toHaveBeenLastCalledWith(0, 0);
+        expect(process.stdout.clearScreenDown).toHaveBeenCalledTimes(1);
+        expect(process.stdout.clearScreenDown).toHaveBeenLastCalledWith();
+        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(3);
+        expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
+        expect(process.exit).toHaveBeenCalledTimes(1);
+        expect(process.exit).toHaveBeenLastCalledWith(1);
+        // w/ status
+        variables.k.die({}, 0);
+        expect(variables.k.abuf).toEqual("");
+        expect(setTimeout).toHaveBeenCalledTimes(1);
+        expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 5000);
+        expect(process.stdout.cursorTo).toHaveBeenCalledTimes(2);
+        expect(process.stdout.cursorTo).toHaveBeenLastCalledWith(0, 0);
+        expect(process.stdout.clearScreenDown).toHaveBeenCalledTimes(2);
+        expect(process.stdout.clearScreenDown).toHaveBeenLastCalledWith();
+        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(4);
+        expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
+        expect(process.exit).toHaveBeenCalledTimes(2);
+        expect(process.exit).toHaveBeenLastCalledWith(0);
+
 
     });
     it(" editorDelChar() : can delete char", () => {
@@ -227,6 +253,7 @@ describe("Kilo", () => {
         variables.k.main();
     });
     beforeEach(() => {
+        jest.useFakeTimers();
         variables.k = new Kilo(["LICENSE"]);
     });
     afterEach(() => {
@@ -244,16 +271,16 @@ describe("Kilo", () => {
         variables.outon = process.stdout.on;
         variables.inon = process.stdin.on;
 
-        console.error = str => {};
-        process.exit = status => {};
-        process.stdout.cursorTo = (x, y) => {};
-        process.stdout.clearScreenDown = () => {};
+        console.error = jest.fn();
+        process.exit = jest.fn();
+        process.stdout.cursorTo = jest.fn();
+        process.stdout.clearScreenDown = jest.fn();
         process.stdin.isTTY = true;
-        process.stdin.setRawMode = b => {};
-        process.stdin.resume = () => {};
-        process.stdout.write = (buf, len) => {};
-        process.stdout.on = func => {};
-        process.stdin.on = func => {};
+        process.stdin.setRawMode = jest.fn();
+        process.stdin.resume = jest.fn();
+        process.stdout.write = jest.fn();
+        process.stdout.on = jest.fn();
+        process.stdin.on = jest.fn();
     });
     afterAll(() => {
         console.error = variables.error;
