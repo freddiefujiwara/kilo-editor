@@ -5,7 +5,7 @@
   "main": "src/kilo.js",
   "bin": "bin/kilo.js",
   "scripts": {
-    "test": "npx jest --collect-coverage",
+    "test": "npx jest --collect-coverage --silent=false --verbose false",
     "build": "npx jsdoc src/",
     "lint": "npx eslint src/ __tests__/",
     "fix": "npx eslint src/ __tests__/ --fix"

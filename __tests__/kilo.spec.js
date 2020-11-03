@@ -194,6 +194,7 @@ describe("Kilo", () => {
     });
     it(" die() : can exit with proper status code", () => {
         expect(variables.k.die).toBeInstanceOf(Function);
+
         // w/o status
         variables.k.die();
         expect(variables.k.abuf).toEqual("");
@@ -207,6 +208,7 @@ describe("Kilo", () => {
         expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
         expect(process.exit).toHaveBeenCalledTimes(1);
         expect(process.exit).toHaveBeenLastCalledWith(1);
+
         // w/ status
         variables.k.die({}, 0);
         expect(variables.k.abuf).toEqual("");
@@ -220,7 +222,6 @@ describe("Kilo", () => {
         expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
         expect(process.exit).toHaveBeenCalledTimes(2);
         expect(process.exit).toHaveBeenLastCalledWith(0);
-
 
     });
     it(" editorDelChar() : can delete char", () => {
@@ -245,7 +246,41 @@ describe("Kilo", () => {
     });
     it(" editorRowInsertChar(at,c) : can insert char at 'at'", () => {
         expect(variables.k.editorRowInsertChar).toBeInstanceOf(Function);
-        variables.k.editorRowInsertChar(0, "");
+        variables.k.editorOpen();
+
+        // position 0
+        variables.k.editorRowInsertChar(0, " ");
+        expect(variables.k.E.erow[0]).toEqual(" MIT License");
+        expect(variables.k.E.dirty).toEqual(1);
+
+        // position 3
+        variables.k.editorRowInsertChar(3, " ");
+        expect(variables.k.E.erow[0]).toEqual(" MI T License");
+        expect(variables.k.E.dirty).toEqual(2);
+
+        // negative invalid position
+        variables.k.editorRowInsertChar(-1, " ");
+        expect(variables.k.E.erow[0]).toEqual(" MI T License ");
+        expect(variables.k.E.dirty).toEqual(3);
+
+        // positive invalid position
+        variables.k.editorRowInsertChar(999, " ");
+        expect(variables.k.E.erow[0]).toEqual(" MI T License  ");
+        expect(variables.k.E.dirty).toEqual(4);
+
+        // go to last
+        variables.k.editorReadKey("g", { name: "g", sequence: "G" });
+        variables.k.editorRowInsertChar(0, " ");
+        expect(variables.k.E.erow[20]).toEqual(" SOFTWARE.");
+        expect(variables.k.E.dirty).toEqual(5);
+
+        // exceed to last
+        variables.k.E.cy++;
+        variables.k.editorRowInsertChar(0, " ");
+        expect(variables.k.E.erow.length).toEqual(22);
+        expect(variables.k.E.erow[20]).toEqual(" SOFTWARE."); // no change
+        expect(variables.k.E.erow[21]).toEqual(" "); // insert proper row
+        expect(variables.k.E.dirty).toEqual(7); // 5 + 2(insert row + insert char)
 
     });
     it(" main : can run properly", () => {
@@ -270,6 +305,8 @@ describe("Kilo", () => {
         variables.write = process.stdout.write;
         variables.outon = process.stdout.on;
         variables.inon = process.stdin.on;
+        variables.rows = process.stdout.rows;
+        variables.columns = process.stdout.columns;
 
         console.error = jest.fn();
         process.exit = jest.fn();
@@ -281,6 +318,8 @@ describe("Kilo", () => {
         process.stdout.write = jest.fn();
         process.stdout.on = jest.fn();
         process.stdin.on = jest.fn();
+        process.stdout.rows = 20;
+        process.stdout.columns = 20;
     });
     afterAll(() => {
         console.error = variables.error;
@@ -293,5 +332,7 @@ describe("Kilo", () => {
         process.stdout.write = variables.write;
         process.stdout.on = variables.outon;
         process.stdin.on = variables.inon;
+        process.stdout.rows = variables.rows;
+        process.stdout.columns = variables.columns;
     });
 });
