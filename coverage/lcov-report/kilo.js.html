@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.43% </span>
+                <span class="strong">51.12% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>177/351</span>
+                <span class='fraction'>182/356</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.14% </span>
+                <span class="strong">50.85% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>175/349</span>
+                <span class='fraction'>180/354</span>
             </div>
         
             
@@ -879,14 +879,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-yes">20x</span>
 <span class="cline-any cline-yes">20x</span>
@@ -1649,33 +1649,33 @@ class Kilo {
      */
     constructor(argv) {
         readline.emitKeypressEvents(process.stdin);
-        this.E = {
-            cx: 0,
-            rx: 0,
-            cy: 0,
-            sx: [],
-            sy: [],
-            xi: 0,
-            erow: [],
-            render: [],
-            rowoff: 0,
-            coloff: 0,
-            dirty: 0,
-            insert: false,
-            search: false,
-            screenrows: process.stdout.rows - 2, // status bar and message bar
-            screencols: process.stdout.columns,
-            statusmsg: ""
+        this.E = { // editorConfig
+            cx: 0, // cursor position x
+            cy: 0, // cursor position y
+            rx: 0, // rendered cursor position x
+            rowoff: 0, // row offset
+            coloff: 0, // column offset
+            erow: [], // editing row
+            render: [], // rendering row
+            screenrows: process.stdout.rows - 2, // screen size(rows) -  status bar and message bar
+            screencols: process.stdout.columns, // screen size(columns)
+            statusmsg: "", // status message
+            dirty: 0 // modified flag
         };
         if (argv &amp;&amp; argv.length &gt; 0) {
             this.E.filename = argv[0];
         }
         this.editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
-        this.backup = {};
-        this.abuf = "";
-        this.sbuf = "";
-        this.ybuf = "";
-        this.prev = "";
+        this.backup = {}; // for undo
+        this.insert = false; // insert mode
+        this.search = false; // insert mode
+        this.sx = [];// searched cursor position x
+        this.sy = []; // searched cursor position y
+        this.si = 0; // searched index
+        this.abuf = ""; // for draw
+        this.sbuf = ""; // for search
+        this.ybuf = ""; // for yank
+        this.prev = ""; // for 2 setp commnd ex) dd yy
     }
 &nbsp;
     /**
@@ -1961,11 +1961,11 @@ class Kilo {
 &nbsp;
         try {
             <span class="missing-if-branch" title="if path not taken" >I</span>if (key.meta) {
-<span class="cstat-no" title="statement not covered" >                this.E.insert = false;</span>
-<span class="cstat-no" title="statement not covered" >                this.E.search = false;</span>
-<span class="cstat-no" title="statement not covered" >                this.E.sx = [];</span>
-<span class="cstat-no" title="statement not covered" >                this.E.sy = [];</span>
-<span class="cstat-no" title="statement not covered" >                this.E.si = 0;</span>
+<span class="cstat-no" title="statement not covered" >                this.insert = false;</span>
+<span class="cstat-no" title="statement not covered" >                this.search = false;</span>
+<span class="cstat-no" title="statement not covered" >                this.sx = [];</span>
+<span class="cstat-no" title="statement not covered" >                this.sy = [];</span>
+<span class="cstat-no" title="statement not covered" >                this.si = 0;</span>
 <span class="cstat-no" title="statement not covered" >                this.sbuf = "";</span>
             } else <span class="missing-if-branch" title="if path not taken" >I</span>if (key.ctrl) {
 <span class="cstat-no" title="statement not covered" >                switch (key.name) {</span>
@@ -1979,7 +1979,7 @@ class Kilo {
 <span class="cstat-no" title="statement not covered" >                        break;</span>
                 }
             } else {
-                <span class="missing-if-branch" title="else path not taken" >E</span>if (!this.E.insert &amp;&amp; !this.E.search) { // not insert mode
+                <span class="missing-if-branch" title="else path not taken" >E</span>if (!this.insert &amp;&amp; !this.search) { // not insert mode
                     <span class="missing-if-branch" title="if path not taken" >I</span>if (typeof key.name === "undefined") { // not insert and not alphabet
 <span class="cstat-no" title="statement not covered" >                        switch (key.sequence) {</span>
                             case "$":
@@ -1991,7 +1991,7 @@ class Kilo {
 <span class="cstat-no" title="statement not covered" >                                this.E.cx = 0;</span>
 <span class="cstat-no" title="statement not covered" >                                break;</span>
                             case "/":
-<span class="cstat-no" title="statement not covered" >                                this.E.search = true;</span>
+<span class="cstat-no" title="statement not covered" >                                this.search = true;</span>
 <span class="cstat-no" title="statement not covered" >                                break;</span>
                             default:
 <span class="cstat-no" title="statement not covered" >                                break;</span>
@@ -2020,14 +2020,14 @@ class Kilo {
                                 }
 <span class="cstat-no" title="statement not covered" >                                break;</span>
 <span class="branch-7 cbranch-no" title="branch not covered" >                            case "escape":</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.insert = false;</span>
+<span class="cstat-no" title="statement not covered" >                                this.insert = false;</span>
 <span class="cstat-no" title="statement not covered" >                                break;</span>
 <span class="branch-8 cbranch-no" title="branch not covered" >                            case "a":</span>
 <span class="cstat-no" title="statement not covered" >                                this.editorMoveCursor("right");</span>
 <span class="branch-9 cbranch-no" title="branch not covered" >                            case "insert":</span>
 <span class="branch-10 cbranch-no" title="branch not covered" >                            case "i":</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.insert = true;</span>
-<span class="cstat-no" title="statement not covered" >                                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.E.insert ? "-- INSERT --" : ""}`);</span>
+<span class="cstat-no" title="statement not covered" >                                this.insert = true;</span>
+<span class="cstat-no" title="statement not covered" >                                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.insert ? "-- INSERT --" : ""}`);</span>
 <span class="cstat-no" title="statement not covered" >                                this.editorRefreshScreen();</span>
 <span class="cstat-no" title="statement not covered" >                                break;</span>
 <span class="branch-11 cbranch-no" title="branch not covered" >                            case "o":</span>
@@ -2041,7 +2041,7 @@ class Kilo {
 <span class="cstat-no" title="statement not covered" >                                    this.E.cx = 0;</span>
 <span class="cstat-no" title="statement not covered" >                                    this.editorUpdateRow();</span>
                                 }
-<span class="cstat-no" title="statement not covered" >                                this.E.insert = true;</span>
+<span class="cstat-no" title="statement not covered" >                                this.insert = true;</span>
 <span class="cstat-no" title="statement not covered" >                                break;</span>
 <span class="branch-12 cbranch-no" title="branch not covered" >                            case "u":</span>
                                 {
@@ -2115,50 +2115,50 @@ class Kilo {
                         }
                     }
                     this.prev = key.name;
-                } else <span class="cstat-no" title="statement not covered" >if (this.E.search &amp;&amp; !this.E.insert) { // search mode</span>
+                } else <span class="cstat-no" title="statement not covered" >if (this.search &amp;&amp; !this.insert) { // search mode</span>
 <span class="cstat-no" title="statement not covered" >                    switch (key.name) {</span>
                         case "backspace":
                         case "delete":
 <span class="cstat-no" title="statement not covered" >                            this.sbuf = "";</span>
 <span class="cstat-no" title="statement not covered" >                            break;</span>
                         case "return":
-<span class="cstat-no" title="statement not covered" >                            this.E.search = false;</span>
-<span class="cstat-no" title="statement not covered" >                            this.E.sx = [];</span>
-<span class="cstat-no" title="statement not covered" >                            this.E.sy = [];</span>
-<span class="cstat-no" title="statement not covered" >                            this.E.si = 0;</span>
+<span class="cstat-no" title="statement not covered" >                            this.search = false;</span>
+<span class="cstat-no" title="statement not covered" >                            this.sx = [];</span>
+<span class="cstat-no" title="statement not covered" >                            this.sy = [];</span>
+<span class="cstat-no" title="statement not covered" >                            this.si = 0;</span>
 <span class="cstat-no" title="statement not covered" >                            this.sbuf = "";</span>
 <span class="cstat-no" title="statement not covered" >                            break;</span>
                         case "right":
                         case "left":
 <span class="cstat-no" title="statement not covered" >                            if (key.name === "right") {</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.si++;</span>
+<span class="cstat-no" title="statement not covered" >                                this.si++;</span>
                             } else {
-<span class="cstat-no" title="statement not covered" >                                this.E.si--;</span>
+<span class="cstat-no" title="statement not covered" >                                this.si--;</span>
                             }
-<span class="cstat-no" title="statement not covered" >                            if (this.E.si &gt;= this.E.sx.length) {</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.si = 0;</span>
+<span class="cstat-no" title="statement not covered" >                            if (this.si &gt;= this.sx.length) {</span>
+<span class="cstat-no" title="statement not covered" >                                this.si = 0;</span>
                             }
-<span class="cstat-no" title="statement not covered" >                            if (this.E.si &lt; 0) {</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.si = this.E.sx.length - 1;</span>
+<span class="cstat-no" title="statement not covered" >                            if (this.si &lt; 0) {</span>
+<span class="cstat-no" title="statement not covered" >                                this.si = this.sx.length - 1;</span>
                             }
                         default:
 <span class="cstat-no" title="statement not covered" >                            if (/^[\ta-z0-9!"#$%&amp;'()*+,./:;&lt;=&gt;?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {</span>
 <span class="cstat-no" title="statement not covered" >                                this.sbuf += key.sequence;</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.sx = [];</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.sy = [];</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.si = 0;</span>
+<span class="cstat-no" title="statement not covered" >                                this.sx = [];</span>
+<span class="cstat-no" title="statement not covered" >                                this.sy = [];</span>
+<span class="cstat-no" title="statement not covered" >                                this.si = 0;</span>
 <span class="cstat-no" title="statement not covered" >                                this.E.erow.forEach(<span class="fstat-no" title="function not covered" >(r</span>, y) =&gt; {</span>
                                     const match = <span class="cstat-no" title="statement not covered" >r.match(new RegExp(this.sbuf, "ui"));</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >                                    if (match) {</span>
-<span class="cstat-no" title="statement not covered" >                                        this.E.sx.push(match.index);</span>
-<span class="cstat-no" title="statement not covered" >                                        this.E.sy.push(y);</span>
+<span class="cstat-no" title="statement not covered" >                                        this.sx.push(match.index);</span>
+<span class="cstat-no" title="statement not covered" >                                        this.sy.push(y);</span>
                                     }
                                 });
                             }
-<span class="cstat-no" title="statement not covered" >                            if (this.E.sx.length &gt; this.E.si) {</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.cx = this.E.sx[this.E.si];</span>
-<span class="cstat-no" title="statement not covered" >                                this.E.cy = this.E.sy[this.E.si];</span>
+<span class="cstat-no" title="statement not covered" >                            if (this.sx.length &gt; this.si) {</span>
+<span class="cstat-no" title="statement not covered" >                                this.E.cx = this.sx[this.si];</span>
+<span class="cstat-no" title="statement not covered" >                                this.E.cy = this.sy[this.si];</span>
                             }
                     }
                 } else { // insert mode
@@ -2209,14 +2209,14 @@ class Kilo {
 <span class="cstat-no" title="statement not covered" >                            this.editorMoveCursor(key.name);</span>
 <span class="cstat-no" title="statement not covered" >                            break;</span>
                         default:
-<span class="cstat-no" title="statement not covered" >                            if (this.E.insert &amp;&amp; /^[\ta-z0-9!"#$%&amp;'()*+,./:;&lt;=&gt;?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {</span>
+<span class="cstat-no" title="statement not covered" >                            if (this.insert &amp;&amp; /^[\ta-z0-9!"#$%&amp;'()*+,./:;&lt;=&gt;?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {</span>
 <span class="cstat-no" title="statement not covered" >                                this.editorInsertChar(key.sequence);</span>
                             }
                     }
                 }
-                const search = this.E.search ? <span class="branch-0 cbranch-no" title="branch not covered" >`/${this.sbuf} (${this.E.sx.length}) found &lt;-prev:next-&gt;)` </span>: "";
+                const search = this.search ? <span class="branch-0 cbranch-no" title="branch not covered" >`/${this.sbuf} (${this.sx.length}) found &lt;-prev:next-&gt;)` </span>: "";
 &nbsp;
-                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${search} - ${this.E.insert ? <span class="branch-0 cbranch-no" title="branch not covered" >"-- INSERT --" </span>: ""}`);
+                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${search} - ${this.insert ? <span class="branch-0 cbranch-no" title="branch not covered" >"-- INSERT --" </span>: ""}`);
             }
             this.editorRefreshScreen();
         } catch (e) {
@@ -2413,7 +2413,7 @@ class Kilo {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Tue Nov 03 2020 00:23:13 GMT+0000 (Coordinated Universal Time)
+                at Tue Nov 03 2020 10:49:09 GMT+0000 (Coordinated Universal Time)
             </div>
         </div>
         <script src="prettify.js"></script>
