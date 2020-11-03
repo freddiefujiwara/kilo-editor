@@ -221,6 +221,7 @@ describe("Kilo", () => {
             { name: "g", sequence: "g" },
             { name: "g", sequence: "G" }
         ].forEach(key => {
+            variables.k.editorReadKey("", key);
             expect(variables.k.E.cy).toEqual(0);
             expect(variables.k.E.cx).toEqual(0);
             expect(variables.k.E.rowoff).toEqual(0);
@@ -229,7 +230,6 @@ describe("Kilo", () => {
             expect(variables.k.abuf).toEqual("");
             expect(variables.k.ybuf).toEqual("");
             expect(variables.k.sbuf).toEqual("");
-            expect(variables.k.prev).toEqual("");
         });
 
         //
