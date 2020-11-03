@@ -52,7 +52,7 @@ describe("Kilo", () => {
         variables.k.E.screenrows = 10;
         variables.k.E.screencols = 10;
         variables.k.editorOpen();
-        variables.k.editorRefreshScreen = () => {};
+        //variables.k.editorRefreshScreen = () => {};
         expect(variables.k.editorReadKey).toBeInstanceOf(Function);
 
         // vertical cursor move
