@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">51.12% </span>
+                <span class="strong">51.4% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>182/356</span>
+                <span class='fraction'>183/356</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">41.32% </span>
+                <span class="strong">40.91% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>100/242</span>
+                <span class='fraction'>99/242</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50.85% </span>
+                <span class="strong">51.13% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>180/354</span>
+                <span class='fraction'>181/354</span>
             </div>
         
             
@@ -865,8 +865,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -879,20 +879,20 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">24x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
-<span class="cline-any cline-yes">20x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -958,14 +958,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -975,8 +975,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">39x</span>
-<span class="cline-any cline-yes">39x</span>
+<span class="cline-any cline-yes">45x</span>
+<span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1748,7 +1748,7 @@ class Kilo {
             this.editorSetStatusMessage(`${erows.length} bytes written to disk`);
             this.E.dirty = 0;
         } catch (e) {
-<span class="cstat-no" title="statement not covered" >            this.editorSetStatusMessage(`${e.name}:${e.message}`);</span>
+            this.editorSetStatusMessage(`${e.name}:${e.message}`);
         }
     }
 &nbsp;
@@ -2280,7 +2280,7 @@ class Kilo {
      */
     editorDrawStatusBar() {
         this.abuf += "\x1b[7m"; // invert the colors. (usually black -&gt; white)
-        const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty &gt; 0 ? <span class="branch-0 cbranch-no" title="branch not covered" >"(modified)" </span>: ""}`;
+        const status = `${this.E.filename ? this.E.filename : <span class="branch-1 cbranch-no" title="branch not covered" >"[No Name]"}</span> - ${this.E.erow.length} lines ${this.E.dirty &gt; 0 ? <span class="branch-0 cbranch-no" title="branch not covered" >"(modified)" </span>: ""}`;
         let len = status.length;
         const rstatus = `${parseInt((this.E.cy + 1) / this.E.erow.length * 100, 10)}% ${this.E.cy + 1}/${this.E.erow.length}`;
 &nbsp;
@@ -2413,7 +2413,7 @@ class Kilo {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Tue Nov 03 2020 10:49:09 GMT+0000 (Coordinated Universal Time)
+                at Tue Nov 03 2020 11:03:38 GMT+0000 (Coordinated Universal Time)
             </div>
         </div>
         <script src="prettify.js"></script>
