@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1604361631005" clover="3.2.0">
-  <project timestamp="1604361631005" name="All files">
-    <metrics statements="349" coveredstatements="175" conditionals="240" coveredconditionals="101" methods="34" coveredmethods="24" elements="623" coveredelements="300" complexity="0" loc="349" ncloc="349" packages="1" files="1" classes="1"/>
+<coverage generated="1604362993351" clover="3.2.0">
+  <project timestamp="1604362993351" name="All files">
+    <metrics statements="349" coveredstatements="175" conditionals="242" coveredconditionals="100" methods="34" coveredmethods="24" elements="625" coveredelements="299" complexity="0" loc="349" ncloc="349" packages="1" files="1" classes="1"/>
     <file name="kilo.js" path="/home/runner/work/kilo-editor/kilo-editor/src/kilo.js">
-      <metrics statements="349" coveredstatements="175" conditionals="240" coveredconditionals="101" methods="34" coveredmethods="24"/>
+      <metrics statements="349" coveredstatements="175" conditionals="242" coveredconditionals="100" methods="34" coveredmethods="24"/>
       <line num="2" count="1" type="stmt"/>
       <line num="3" count="1" type="stmt"/>
       <line num="4" count="1" type="stmt"/>
@@ -25,7 +25,7 @@
       <line num="66" count="1" type="stmt"/>
       <line num="67" count="1" type="stmt"/>
       <line num="68" count="1" type="stmt"/>
-      <line num="69" count="1" type="cond" truecount="2" falsecount="0"/>
+      <line num="69" count="1" type="cond" truecount="1" falsecount="1"/>
       <line num="79" count="2" type="cond" truecount="1" falsecount="1"/>
       <line num="80" count="2" type="stmt"/>
       <line num="91" count="2" type="cond" truecount="1" falsecount="1"/>
@@ -170,10 +170,10 @@
       <line num="428" count="0" type="stmt"/>
       <line num="430" count="0" type="cond" truecount="0" falsecount="4"/>
       <line num="431" count="0" type="stmt"/>
-      <line num="434" count="0" type="cond" truecount="0" falsecount="4"/>
+      <line num="434" count="0" type="cond" truecount="0" falsecount="2"/>
       <line num="435" count="0" type="stmt"/>
-      <line num="436" count="0" type="stmt"/>
-      <line num="437" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="436" count="0" type="cond" truecount="0" falsecount="2"/>
+      <line num="437" count="0" type="cond" truecount="0" falsecount="4"/>
       <line num="438" count="0" type="stmt"/>
       <line num="439" count="0" type="stmt"/>
       <line num="441" count="0" type="stmt"/>
