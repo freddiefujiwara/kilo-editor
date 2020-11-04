@@ -239,7 +239,7 @@ describe("Kilo", () => {
         variables.k.editorReadKey("G", { name: "g", sequence: "G" }); // go to EOF
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(20);
-        variables.k.editorReadKey("", { name: "pagedown"}); // go to EOF
+        variables.k.editorReadKey("", { name: "pagedown" }); // go to EOF
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(21);
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
