@@ -202,6 +202,39 @@ describe("Kilo", () => {
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(0);
 
+        // backspace , delete
+        variables.k.editorReadKey("", { name: "backspace" });
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
+        expect(variables.k.E.erow[0]).toEqual("IT License");
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+        expect(variables.k.E.erow[0]).toEqual("MIT License");
+        variables.k.editorReadKey("", { name: "delete" });
+        expect(variables.k.E.erow[0]).toEqual("IT License");
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+        variables.k.editorReadKey("l", { name: "l" }); // move to 0,1
+        variables.k.editorReadKey("", { name: "backspace" });
+        expect(variables.k.E.erow[0]).toEqual("IT License");
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+        variables.k.editorReadKey("l", { name: "l" }); // move to 0,1
+        variables.k.editorReadKey("", { name: "delete" });
+        expect(variables.k.E.erow[0]).toEqual("MT License");
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+
+        // yank & paste
+        expect(variables.k.E.erow.length).toEqual(21);
+        variables.k.editorReadKey("y", { name: "y" }); // 1st time
+        variables.k.editorReadKey("y", { name: "y" }); // 2nd time
+        expect(variables.k.ybuf).toEqual("MIT License");
+        expect(variables.k.E.erow.length).toEqual(21);
+        variables.k.editorReadKey("p", { name: "p" }); // paste
+        expect(variables.k.E.erow.length).toEqual(22);
+        expect(variables.k.E.erow[1]).toEqual("MIT License");
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+        expect(variables.k.E.erow.length).toEqual(21);
+
         // for empty files
         variables.k = new Kilo();
         [
@@ -231,6 +264,7 @@ describe("Kilo", () => {
             expect(variables.k.ybuf).toEqual("");
             expect(variables.k.sbuf).toEqual("");
         });
+
 
         //
         // -- SEARCH MODE --
