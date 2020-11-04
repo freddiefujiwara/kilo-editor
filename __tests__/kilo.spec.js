@@ -235,6 +235,18 @@ describe("Kilo", () => {
         variables.k.editorReadKey("u", { name: "u" }); // rollback
         expect(variables.k.E.erow.length).toEqual(21);
 
+        // move to EOF
+        variables.k.editorReadKey("G", { name: "g", sequence: "G" }); // go to EOF
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(20);
+        variables.k.editorReadKey("", { name: "pagedown"}); // go to EOF
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(21);
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
+
         // for empty files
         variables.k = new Kilo();
         [

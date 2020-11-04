@@ -434,7 +434,7 @@ class Kilo {
                                 if (key.sequence === "G") {
                                     this.E.cx = 0;
                                     this.E.cy = this.E.erow.length > 0 ? this.E.erow.length - 1 : 0;
-                                } else if (row !== false && this.prev === "g") { // gg  to top
+                                } else if (this.prev === "g") { // gg  to top
                                     this.E.cx = 0;
                                     this.E.cy = 0;
                                 }
