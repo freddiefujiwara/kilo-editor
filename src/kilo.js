@@ -174,30 +174,6 @@ class Kilo {
     }
 
     /**
-     * delete single char for the row
-     * @param {int} at the target position
-     * @todo handle multibyte properly
-     * @returns {void}
-     */
-    editorRowDelChar(at) {
-        if (this.E.erow.length <= this.E.cy) {
-            return;
-        }
-        const row = this.E.erow[this.E.cy];
-        const newRow = `${row.slice(0, at)}${row.slice(at + 1)}`;
-
-        if (newRow.length > 0) {
-            this.E.erow[this.E.cy] = newRow;
-        } else {
-            this.E.erow.splice(this.E.cy, 1);
-            if (this.E.erow.length > 0 && this.E.cy > 0) {
-                this.E.cy--;
-            }
-        }
-        this.editorUpdateRow();
-    }
-
-    /**
      * insert one row
      * @param {string} insert string which will be inserted
      * @todo handle multibyte properly
@@ -218,11 +194,22 @@ class Kilo {
         if (this.E.erow.length === 0) {
             return;
         }
-        if (this.E.cy === this.E.erow.length) {
+        if (this.E.erow.length <= this.E.cy) {
             return;
         }
         this.backup = JSON.stringify(this.E);
-        this.editorRowDelChar(this.E.cx);
+        const row = this.E.erow[this.E.cy];
+        const newRow = `${row.slice(0, this.E.cx)}${row.slice(this.E.cx + 1)}`;
+
+        if (newRow.length > 0) {
+            this.E.erow[this.E.cy] = newRow;
+        } else {
+            this.E.erow.splice(this.E.cy, 1);
+            if (this.E.erow.length > 0 && this.E.cy > 0) {
+                this.E.cy--;
+            }
+        }
+        this.editorUpdateRow();
         this.E.dirty++;
     }
 

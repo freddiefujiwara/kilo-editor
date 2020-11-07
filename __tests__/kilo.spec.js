@@ -657,11 +657,6 @@ describe("Kilo", () => {
         variables.k.editorInsertRow();
 
     });
-    it(" editorRowDelChar(at) : can delete char at 'at'", () => {
-        expect(variables.k.editorRowDelChar).toBeInstanceOf(Function);
-        variables.k.editorRowDelChar(0);
-
-    });
     it(" editorInsertChar(at) : can insert char at 'at'", () => {
         expect(variables.k.editorInsertChar).toBeInstanceOf(Function);
         variables.k.editorOpen();
