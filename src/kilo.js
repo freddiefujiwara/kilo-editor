@@ -394,9 +394,6 @@ class Kilo {
                                     this.editorMoveCursor("down");
                                 }
                                 break;
-                            case "escape":
-                                this.insert = false;
-                                break;
                             case "a":
                                 this.editorMoveCursor("right");
                             case "insert":
@@ -747,10 +744,10 @@ class Kilo {
                 , (match, p1, p2, p3) => `\x1b[35m${p1}${p2}${p3}\x1b[39m`) // string quote
             .replace(/(&{1,2}|[-*+\\|?"<>;:=!])/ug // operator
                 , (match, p1) => `\x1b[36m${p1}\x1b[39m`)
-            .replace(/([\W])(try|let|const|constructor|require|this|new|undefined)([\W])/ug // keyword
-                , (match, p1, p2, p3) => `${p1}\x1b[32m${p2}\x1b[39m${p3}`)
-            .replace(/([\W])(break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch)([\W])/ug // reserved
-                , (match, p1, p2, p3) => `${p1}\x1b[33m${p2}\x1b[39m${p3}`)
+            .replace(/\b(try|let|const|constructor|require|this|new|undefined|static)\b/ug // keyword
+                , (match, p1) => `\x1b[32m${p1}\x1b[39m`)
+            .replace(/\b(break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch)\b/ug // reserved
+                , (match, p1) => `\x1b[33m${p1}\x1b[39m`)
             .replace(/(\/\/.*$)/ug // comment out
                 , (match, p1) => `\x1b[36m${p1}\x1b[39m`);
     }

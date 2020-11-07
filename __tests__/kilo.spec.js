@@ -306,10 +306,14 @@ describe("Kilo", () => {
         //
         // -- SEARCH MODE --
         //
+        expect(variables.k.search).toBeFalsy();
         variables.k.editorReadKey("/", { sequence: "/" }); // search mode
+        expect(variables.k.search).toBeTruthy();
+        expect(variables.k.sbuf).toEqual("");
         "all".split("").forEach(k => {
             variables.k.editorReadKey(k, { name: k, sequence: k });
         });
+        expect(variables.k.sbuf).toEqual("all");
         expect(variables.k.E.cx).toEqual(56);
         expect(variables.k.E.cy).toEqual(11);
         variables.k.editorReadKey("", { name: "right" });
@@ -333,6 +337,22 @@ describe("Kilo", () => {
         variables.k.editorReadKey("", { name: "left" });
         expect(variables.k.E.cx).toEqual(68);
         expect(variables.k.E.cy).toEqual(16);
+        [{ name: "backspace" }, { name: "delete" }].forEach(key => {
+            variables.k.editorReadKey("", key); // search mode
+            expect(variables.k.search).toBeTruthy();
+            expect(variables.k.sbuf).toEqual("");
+            expect(variables.k.si).toEqual(2);
+            expect(variables.k.sx.length).toEqual(3);
+            expect(variables.k.sy.length).toEqual(3);
+        });
+        [{ name: "return" }, { meta: true }].forEach(key => {
+            variables.k.editorReadKey("", key); // search mode
+            expect(variables.k.search).toBeFalsy();
+            expect(variables.k.sbuf).toEqual("");
+            expect(variables.k.si).toEqual(0);
+            expect(variables.k.sx.length).toEqual(0);
+            expect(variables.k.sy.length).toEqual(0);
+        });
 
         //
         // -- INSERT --
