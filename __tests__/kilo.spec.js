@@ -348,10 +348,6 @@ describe("Kilo", () => {
         [{ name: "return" }, { meta: true }].forEach(key => {
             variables.k.editorReadKey("", key);
             expect(variables.k.search).toBeFalsy();
-            expect(variables.k.sbuf).toEqual("");
-            expect(variables.k.si).toEqual(0);
-            expect(variables.k.sx.length).toEqual(0);
-            expect(variables.k.sy.length).toEqual(0);
         });
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
