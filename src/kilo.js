@@ -627,7 +627,7 @@ class Kilo {
      * @returns {void}
      */
     editorDrawRows() {
-        for (let y = 0; y < this.E.screenrows; y++) {
+        [...Array(this.E.screenrows)].forEach((_, y) => {
             const filerow = y + this.E.rowoff;
 
             if (filerow >= this.E.erow.length) {
@@ -668,7 +668,7 @@ class Kilo {
             }
             this.abuf += "\x1b[K"; // remove all chars after the cursor position
             this.abuf += os.EOL;
-        }
+        });
     }
 
     /**
