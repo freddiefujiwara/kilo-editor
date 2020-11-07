@@ -17,7 +17,6 @@ $ npm -g i kilo-editor
 - [windows-latest](https://github.com/actions/virtual-environments#available-environments)
 - [macos-latest](https://github.com/actions/virtual-environments#available-environments)
 ## node version
-- 10.x
 - 12.x
 - 14.x
 
