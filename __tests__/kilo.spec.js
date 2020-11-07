@@ -289,7 +289,7 @@ describe("Kilo", () => {
             { name: "x" },
             { name: "delete" },
             { name: "backspace" },
-            { name: "4" } // wrong command
+            { name: "4" } // wrong key
         ].forEach(key => {
             blank.editorReadKey("", key);
             expect(blank.E.cy).toEqual(0);
@@ -404,6 +404,7 @@ describe("Kilo", () => {
         expect(variables.k.E.erow[1]).toEqual("i");
         variables.k.editorReadKey("", { meta: true });
         variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+        variables.k.editorReadKey("x", { name: "x", sequence: "x" }); // delete a row
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
         expect(variables.k.E.cx).toEqual(0);
@@ -415,6 +416,115 @@ describe("Kilo", () => {
         expect(variables.k.E.erow[0]).toEqual("i");
         variables.k.editorReadKey("", { meta: true });
         variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+        variables.k.editorReadKey("x", { name: "x", sequence: "x" }); // delete a row
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
+
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.insert).toBeTruthy();
+
+        variables.k.editorReadKey("", { name: "down" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(1);
+
+        variables.k.editorReadKey("", { name: "pagedown" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(15);
+        expect(variables.k.E.rowoff).toEqual(8);
+
+        variables.k.editorReadKey("", { name: "down" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(16);
+        expect(variables.k.E.rowoff).toEqual(9);
+
+        variables.k.editorReadKey("", { name: "pagedown" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(21);
+        expect(variables.k.E.rowoff).toEqual(14);
+
+        variables.k.editorReadKey("", { name: "up" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(20);
+        expect(variables.k.E.rowoff).toEqual(14);
+
+        variables.k.editorReadKey("", { name: "pageup" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(6);
+        expect(variables.k.E.rowoff).toEqual(6);
+
+        variables.k.editorReadKey("", { name: "pageup" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(0);
+        expect(variables.k.E.rowoff).toEqual(0);
+
+        // horizontal cursor move
+        variables.k.editorReadKey("", { name: "right" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cx).toEqual(1);
+        expect(variables.k.E.coloff).toEqual(0);
+
+        variables.k.editorReadKey("", { name: "end" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cx).toEqual(11);
+        expect(variables.k.E.coloff).toEqual(2);
+
+        variables.k.editorReadKey("", { name: "left" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cx).toEqual(10);
+        expect(variables.k.E.coloff).toEqual(2);
+
+        variables.k.editorReadKey("", { name: "right" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cx).toEqual(11);
+        expect(variables.k.E.coloff).toEqual(2);
+
+        variables.k.editorReadKey("", { name: "right" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(1);
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.coloff).toEqual(0);
+
+        variables.k.editorReadKey("", { name: "left" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(0);
+        expect(variables.k.E.cx).toEqual(11);
+        expect(variables.k.E.coloff).toEqual(2);
+
+        variables.k.editorReadKey("", { name: "home" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(0);
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.coloff).toEqual(0);
+
+        variables.k.editorReadKey("", { name: "down" });
+        variables.k.editorScroll();
+        variables.k.editorReadKey("", { name: "down" });
+        variables.k.editorScroll();
+        variables.k.editorReadKey("", { name: "end" });
+        variables.k.editorScroll();
+        variables.k.editorReadKey("", { name: "up" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(1);
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.coloff).toEqual(0);
+        variables.k.editorReadKey("", { name: "up" }); // back to 0,0
+
+        variables.k.editorReadKey("return", { name: "return" });
+        variables.k.editorReadKey("return", { name: "return" });
+        variables.k.editorScroll();
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(2);
+        expect(variables.k.E.erow[0]).toEqual("");
+        expect(variables.k.E.erow[1]).toEqual("");
+        variables.k.editorReadKey("", { name: "up" });
+        variables.k.editorScroll();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" });
+        variables.k.editorScroll();
+        expect(variables.k.E.erow[1]).toEqual("i");
+        variables.k.editorReadKey("", { name: "backspace" });
+        expect(variables.k.E.erow[1]).toEqual("MIT License");
 
     });
     it(" editorResize() : can resize properly", () => {
@@ -426,6 +536,8 @@ describe("Kilo", () => {
         variables.k.editorRefreshScreen();
     });
     it(" editorDrawStatusBar() : can draw lines", () => {
+        variables.k.E.screenrows = 100;
+        variables.k.E.screencols = 100;
         expect(variables.k.editorDrawStatusBar).toBeInstanceOf(Function);
         expect(variables.k.abuf.length).toBe(0);
         variables.k.editorDrawStatusBar();
@@ -481,9 +593,13 @@ describe("Kilo", () => {
         expect(Kilo.editorUpdateSyntax("test")).toEqual("test");
     });
     it(" editorMoveCursor() : can calculate proper cursor position", () => {
-        variables.k.editorMoveCursor("up");
-
         expect(variables.k.editorMoveCursor).toBeInstanceOf(Function);
+        variables.k.editorMoveCursor("up");
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
+        variables.k.editorMoveCursor("4"); // wrong key
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
     });
     it(" die() : can exit with proper status code", () => {
         expect(variables.k.die).toBeInstanceOf(Function);
