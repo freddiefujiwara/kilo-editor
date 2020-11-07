@@ -11,6 +11,11 @@ JavaScript port for [kilo](https://github.com/snaptoken/kilo-src)
 $ npm -g i kilo-editor
 ```
 
+# How to test
+```bash
+$ npm t
+```
+
 # support environment
 ## os
 - [ubuntu-latest](https://github.com/actions/virtual-environments#available-environments)
