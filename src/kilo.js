@@ -398,7 +398,7 @@ class Kilo {
                                 this.sy = [];
                                 this.si = 0;
                                 this.E.erow.forEach((r, y) => {
-                                    [...r.matchAll(new RegExp(this.sbuf, "ugi"))].forEach(m => {
+                                    [...r.matchAll(new RegExp(this.sbuf.replace(/[.*+?^${}()|[\]\\]/ug, "\\$&"), "ugi"))].forEach(m => {
                                         this.sx.push(m.index);
                                         this.sy.push(y);
                                     });
@@ -644,9 +644,9 @@ class Kilo {
                         this.abuf += "~";
                         padding--;
                     }
-                    while (padding-- > 0) {
+                    [...Array(padding)].forEach(() => {
                         this.abuf += " ";
-                    }
+                    });
                     this.abuf += welcome;
                 } else {
                     this.abuf += "~";
