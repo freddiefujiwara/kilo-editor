@@ -219,9 +219,21 @@ describe("Kilo", () => {
         expect(variables.k.E.cy).toEqual(0);
         variables.k.editorReadKey("u", { name: "u" }); // rollback
         variables.k.editorReadKey("l", { name: "l" }); // move to 0,1
-        variables.k.editorReadKey("", { name: "delete" });
+        variables.k.editorReadKey("", { name: "x" });
         expect(variables.k.E.erow[0]).toEqual("MT License");
         variables.k.editorReadKey("u", { name: "u" }); // rollback
+        variables.k.editorReadKey("d", { name: "d" }); // 1st time "d"
+        expect(variables.k.E.erow[0]).toEqual("MIT License"); // no change
+        variables.k.editorReadKey("d", { name: "d" }); // 2nd time "d"
+        expect(variables.k.E.erow[0]).toEqual(""); // deleted
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+        variables.k.editorReadKey("j", { name: "j" }); // move to 0,1
+        variables.k.editorReadKey("x", { name: "x" }); // delete
+        expect(variables.k.E.erow[1]).toEqual("Copyright (c) 2020 Fumikazu Fujiwara | Freddie"); // no change
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(1);
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+        variables.k.editorReadKey("up", { name: "up" }); // move to 0,0
 
         // yank & paste
         expect(variables.k.E.erow.length).toEqual(21);
@@ -239,16 +251,25 @@ describe("Kilo", () => {
         variables.k.editorReadKey("G", { name: "g", sequence: "G" }); // go to EOF
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(20);
-        variables.k.editorReadKey("", { name: "pagedown" }); // go to EOF
+        variables.k.editorReadKey("", { name: "pagedown" }); // go to erow.length
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(21);
+        const rowoff = variables.k.E.rowoff; // for the line if(this.E.cy>this.E.erow.length)this.E.cy = this.E.erow.length;
+
+        variables.k.E.rowoff = 22;
+
+        variables.k.editorReadKey("", { name: "pagedown" }); // no change
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(21);
+        variables.k.E.rowoff = rowoff;
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(0);
 
         // for empty files
-        variables.k = new Kilo();
+        const blank = new Kilo();
+
         [
             { name: "up" },
             { name: "k" },
@@ -267,23 +288,52 @@ describe("Kilo", () => {
             { name: "g", sequence: "G" },
             { name: "x" },
             { name: "delete" },
-            { name: "backspace" }
+            { name: "backspace" },
+            { name: "4" } // wrong command
         ].forEach(key => {
-            variables.k.editorReadKey("", key);
-            expect(variables.k.E.cy).toEqual(0);
-            expect(variables.k.E.cx).toEqual(0);
-            expect(variables.k.E.rowoff).toEqual(0);
-            expect(variables.k.E.coloff).toEqual(0);
-            expect(variables.k.E.dirty).toEqual(0);
-            expect(variables.k.abuf).toEqual("");
-            expect(variables.k.ybuf).toEqual("");
-            expect(variables.k.sbuf).toEqual("");
+            blank.editorReadKey("", key);
+            expect(blank.E.cy).toEqual(0);
+            expect(blank.E.cx).toEqual(0);
+            expect(blank.E.rowoff).toEqual(0);
+            expect(blank.E.coloff).toEqual(0);
+            expect(blank.E.dirty).toEqual(0);
+            expect(blank.abuf).toEqual("");
+            expect(blank.ybuf).toEqual("");
+            expect(blank.sbuf).toEqual("");
         });
 
 
         //
         // -- SEARCH MODE --
         //
+        variables.k.editorReadKey("/", { sequence: "/" }); // search mode
+        "all".split("").forEach(k => {
+            variables.k.editorReadKey(k, { name: k, sequence: k });
+        });
+        expect(variables.k.E.cx).toEqual(56);
+        expect(variables.k.E.cy).toEqual(11);
+        variables.k.editorReadKey("", { name: "right" });
+        expect(variables.k.E.cx).toEqual(75);
+        expect(variables.k.E.cy).toEqual(11);
+        variables.k.editorReadKey("", { name: "right" });
+        expect(variables.k.E.cx).toEqual(68);
+        expect(variables.k.E.cy).toEqual(16);
+        variables.k.editorReadKey("", { name: "right" });
+        expect(variables.k.E.cx).toEqual(56);
+        expect(variables.k.E.cy).toEqual(11);
+        variables.k.editorReadKey("", { name: "left" });
+        expect(variables.k.E.cx).toEqual(68);
+        expect(variables.k.E.cy).toEqual(16);
+        variables.k.editorReadKey("", { name: "left" });
+        expect(variables.k.E.cx).toEqual(75);
+        expect(variables.k.E.cy).toEqual(11);
+        variables.k.editorReadKey("", { name: "left" });
+        expect(variables.k.E.cx).toEqual(56);
+        expect(variables.k.E.cy).toEqual(11);
+        variables.k.editorReadKey("", { name: "left" });
+        expect(variables.k.E.cx).toEqual(68);
+        expect(variables.k.E.cy).toEqual(16);
+
         //
         // -- INSERT --
         //

@@ -523,12 +523,10 @@ class Kilo {
                                 this.sy = [];
                                 this.si = 0;
                                 this.E.erow.forEach((r, y) => {
-                                    const match = r.match(new RegExp(this.sbuf, "ui"));
-
-                                    if (match) {
-                                        this.sx.push(match.index);
+                                    [...r.matchAll(new RegExp(this.sbuf, "ugi"))].forEach(m => {
+                                        this.sx.push(m.index);
                                         this.sy.push(y);
-                                    }
+                                    });
                                 });
                             }
                             if (this.sx.length > this.si) {
