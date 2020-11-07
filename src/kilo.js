@@ -150,25 +150,26 @@ class Kilo {
     }
 
     /**
-     * insert single char for the row
-     * @param {int} at the target position
+     * insert single char
      * @param {char} c char which will be inserted
      * @todo handle multibyte properly
      * @returns {void}
      */
-    editorRowInsertChar(at, c) {
+    editorInsertChar(c) {
+        this.backup = JSON.stringify(this.E);
         if (this.E.cy === this.E.erow.length) {
             this.editorInsertRow();
         }
-        let pos = at;
+        let pos = this.E.cx;
         const row = this.E.erow[this.E.cy];
 
-        if (at < 0 || at > row.length) {
+        if (this.E.cx < 0 || this.E.cx > row.length) {
             pos = row.length;
         }
 
         this.E.erow[this.E.cy] = `${row.slice(0, pos)}${c}${row.slice(pos)}`;
         this.editorUpdateRow();
+        this.editorMoveCursor("right");
         this.E.dirty++;
     }
 
@@ -194,19 +195,6 @@ class Kilo {
             }
         }
         this.editorUpdateRow();
-    }
-
-    /**
-     * insert single char
-     * @param {char} c char which will be inserted
-     * @todo handle multibyte properly
-     * @returns {void}
-     */
-    editorInsertChar(c) {
-        this.backup = JSON.stringify(this.E);
-        this.editorRowInsertChar(this.E.cx, c);
-        this.editorMoveCursor("right");
-        this.E.dirty++;
     }
 
     /**

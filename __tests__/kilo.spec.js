@@ -657,49 +657,49 @@ describe("Kilo", () => {
         variables.k.editorInsertRow();
 
     });
-    it(" editorInsertChar(c) : can insert c", () => {
-        expect(variables.k.editorInsertChar).toBeInstanceOf(Function);
-        variables.k.editorInsertChar("");
-
-    });
     it(" editorRowDelChar(at) : can delete char at 'at'", () => {
         expect(variables.k.editorRowDelChar).toBeInstanceOf(Function);
         variables.k.editorRowDelChar(0);
 
     });
-    it(" editorRowInsertChar(at,c) : can insert char at 'at'", () => {
-        expect(variables.k.editorRowInsertChar).toBeInstanceOf(Function);
+    it(" editorInsertChar(at) : can insert char at 'at'", () => {
+        expect(variables.k.editorInsertChar).toBeInstanceOf(Function);
         variables.k.editorOpen();
 
         // position 0
-        variables.k.editorRowInsertChar(0, " ");
+        variables.k.E.cx = 0;
+        variables.k.editorInsertChar(" ");
         expect(variables.k.E.erow[0]).toEqual(" MIT License");
         expect(variables.k.E.dirty).toEqual(1);
 
         // position 3
-        variables.k.editorRowInsertChar(3, " ");
+        variables.k.E.cx = 3;
+        variables.k.editorInsertChar(" ");
         expect(variables.k.E.erow[0]).toEqual(" MI T License");
         expect(variables.k.E.dirty).toEqual(2);
 
         // negative invalid position
-        variables.k.editorRowInsertChar(-1, " ");
+        variables.k.E.cx = -1;
+        variables.k.editorInsertChar(" ");
         expect(variables.k.E.erow[0]).toEqual(" MI T License ");
         expect(variables.k.E.dirty).toEqual(3);
 
         // positive invalid position
-        variables.k.editorRowInsertChar(999, " ");
+        variables.k.E.cx = 999;
+        variables.k.editorInsertChar(" ");
         expect(variables.k.E.erow[0]).toEqual(" MI T License  ");
         expect(variables.k.E.dirty).toEqual(4);
 
         // go to last
         variables.k.editorReadKey("g", { name: "g", sequence: "G" });
-        variables.k.editorRowInsertChar(0, " ");
+        variables.k.editorInsertChar(" ");
         expect(variables.k.E.erow[20]).toEqual(" SOFTWARE.");
         expect(variables.k.E.dirty).toEqual(5);
 
         // exceed to last
         variables.k.E.cy++;
-        variables.k.editorRowInsertChar(0, " ");
+        variables.k.E.cx = 0;
+        variables.k.editorInsertChar(" ");
         expect(variables.k.E.erow.length).toEqual(22);
         expect(variables.k.E.erow[20]).toEqual(" SOFTWARE."); // no change
         expect(variables.k.E.erow[21]).toEqual(" "); // insert proper row
