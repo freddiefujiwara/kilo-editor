@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1604712511142" clover="3.2.0">
-  <project timestamp="1604712511142" name="All files">
-    <metrics statements="351" coveredstatements="293" conditionals="237" coveredconditionals="188" methods="35" coveredmethods="31" elements="623" coveredelements="512" complexity="0" loc="351" ncloc="351" packages="1" files="1" classes="1"/>
+<coverage generated="1604713694799" clover="3.2.0">
+  <project timestamp="1604713694799" name="All files">
+    <metrics statements="352" coveredstatements="293" conditionals="237" coveredconditionals="188" methods="35" coveredmethods="31" elements="624" coveredelements="512" complexity="0" loc="352" ncloc="352" packages="1" files="1" classes="1"/>
     <file name="kilo.js" path="/home/runner/work/kilo-editor/kilo-editor/src/kilo.js">
-      <metrics statements="351" coveredstatements="293" conditionals="237" coveredconditionals="188" methods="35" coveredmethods="31"/>
+      <metrics statements="352" coveredstatements="293" conditionals="237" coveredconditionals="188" methods="35" coveredmethods="31"/>
       <line num="2" count="1" type="stmt"/>
       <line num="3" count="1" type="stmt"/>
       <line num="4" count="1" type="stmt"/>
@@ -352,9 +352,10 @@
       <line num="767" count="1" type="stmt"/>
       <line num="768" count="0" type="stmt"/>
       <line num="769" count="0" type="stmt"/>
-      <line num="772" count="0" type="stmt"/>
-      <line num="776" count="1" type="cond" truecount="3" falsecount="1"/>
-      <line num="777" count="1" type="stmt"/>
+      <line num="770" count="0" type="stmt"/>
+      <line num="773" count="0" type="stmt"/>
+      <line num="777" count="1" type="cond" truecount="3" falsecount="1"/>
+      <line num="778" count="1" type="stmt"/>
     </file>
   </project>
 </coverage>
