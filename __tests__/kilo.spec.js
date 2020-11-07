@@ -511,8 +511,11 @@ describe("Kilo", () => {
         expect(variables.k.E.coloff).toEqual(0);
         variables.k.editorReadKey("", { name: "up" }); // back to 0,0
 
-        variables.k.editorReadKey("return", { name: "return" });
-        variables.k.editorReadKey("return", { name: "return" });
+        variables.k.editorReadKey("", { name: "return" });
+        variables.k.editorReadKey("", { name: "return" });
+        variables.k.editorReadKey("", { name: "up" });
+        variables.k.editorReadKey("", { name: "delete" });
+        variables.k.editorReadKey("", { name: "return" });
         variables.k.editorScroll();
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(2);
@@ -524,6 +527,11 @@ describe("Kilo", () => {
         variables.k.editorScroll();
         expect(variables.k.E.erow[1]).toEqual("i");
         variables.k.editorReadKey("", { name: "backspace" });
+        expect(variables.k.E.erow[1]).toEqual("MIT License");
+        variables.k.editorReadKey("return", { name: "return" });
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" });
+        variables.k.editorReadKey("", { name: "left" });
+        variables.k.editorReadKey("", { name: "delete" });
         expect(variables.k.E.erow[1]).toEqual("MIT License");
 
     });
@@ -591,6 +599,9 @@ describe("Kilo", () => {
     it(" editorUpdateSyntax() : can markup and colored properly", () => {
         expect(Kilo.editorUpdateSyntax).toBeInstanceOf(Function);
         expect(Kilo.editorUpdateSyntax("test")).toEqual("test");
+        expect(Kilo.editorUpdateSyntax("'test'")).toEqual("\x1b[35m'test'\x1b[39m");
+        expect(Kilo.editorUpdateSyntax("\"test\"")).toEqual("\x1b[35m\"test\"\x1b[39m");
+        expect(Kilo.editorUpdateSyntax("//test")).toEqual("\x1b[36m//test\x1b[39m");
     });
     it(" editorMoveCursor() : can calculate proper cursor position", () => {
         expect(variables.k.editorMoveCursor).toBeInstanceOf(Function);

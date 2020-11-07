@@ -752,7 +752,7 @@ class Kilo {
                 , (match, p1, p2, p3) => `\x1b[35m${p1}${p2}${p3}\x1b[39m`) // string quote
             .replace(/(")([^"]*)(")/ug // operator
                 , (match, p1, p2, p3) => `\x1b[35m${p1}${p2}${p3}\x1b[39m`) // string quote
-            .replace(/(&{1,2}|[-*+\\|?"<>;:=!])/ug // operator
+            .replace(/(&{1,2}|[-*+\\|?<>;:=!])/ug // operator
                 , (match, p1) => `\x1b[36m${p1}\x1b[39m`)
             .replace(/\b(try|let|const|constructor|require|this|new|undefined|static)\b/ug // keyword
                 , (match, p1) => `\x1b[32m${p1}\x1b[39m`)
