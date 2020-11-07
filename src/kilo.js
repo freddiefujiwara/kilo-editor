@@ -5,6 +5,7 @@ const fs = require("fs");
 const os = require("os");
 const KILO_TAB_STOP = 8;
 const MULTI_BYTE = 2;
+const SEARCHABLE_CHARS = /^[\ta-z0-9!"#$%&'()*+,./:;<=>?@[\]\\ ^_`{|}~-]$/ui;
 
 /**
  * @classdesc This is Kilo class
@@ -156,11 +157,10 @@ class Kilo {
      * @returns {void}
      */
     editorRowInsertChar(at, c) {
-        let pos = at;
-
         if (this.E.cy === this.E.erow.length) {
             this.editorInsertRow();
         }
+        let pos = at;
         const row = this.E.erow[this.E.cy];
 
         if (at < 0 || at > row.length) {
@@ -179,11 +179,10 @@ class Kilo {
      * @returns {void}
      */
     editorRowDelChar(at) {
-        const row = this.E.erow[this.E.cy];
-
         if (this.E.erow.length <= this.E.cy) {
             return;
         }
+        const row = this.E.erow[this.E.cy];
         const newRow = `${row.slice(0, at)}${row.slice(at + 1)}`;
 
         if (newRow.length > 0) {
@@ -252,11 +251,10 @@ class Kilo {
      * @todo handle multibyte properly
      */
     static editorRowCxToRx(row, cx) {
-        let rx = 0;
-        let j;
         const chars = row.match(/./ug);
+        let rx = 0;
 
-        for (j = 0; j < cx; j++) {
+        for (let j = 0; j < cx; j++) {
             if (chars[j] === "\t") {
                 rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
             }
@@ -394,7 +392,7 @@ class Kilo {
                                 this.si = this.sx.length - 1;
                             }
                         default:
-                            if (/^[\ta-z0-9!"#$%&'()*+,./:;<=>?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {
+                            if (SEARCHABLE_CHARS.test(key.sequence)) {
                                 this.sbuf += key.sequence;
                                 this.sx = [];
                                 this.sy = [];
@@ -412,7 +410,7 @@ class Kilo {
                             }
                     }
                 } else if (this.insert) { // insert mode
-                    if (/^[\ta-z0-9!"#$%&'()*+,./:;<=>?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {
+                    if (SEARCHABLE_CHARS.test(key.sequence)) {
                         this.editorInsertChar(key.sequence);
                     } else if (key.name === "return") {
                         this.editorInsertRow();
@@ -518,13 +516,20 @@ class Kilo {
                 }
                 break;
             case "d":
-                if (row !== false && this.prev === "d") { // dd delete a row
-                    const backup = JSON.stringify(this.E);
+                if (row !== false) { // dd delete a row
+                    if (this.prev === "d") { // dd delete a row
+                        const backup = JSON.stringify(this.E);
 
-                    this.E.cx = 0;
-                    this.ybuf = row;
-                    [...Array(row.length)].map(() => this.editorDelChar());
-                    this.backup = backup;
+                        this.E.cx = 0;
+                        this.ybuf = row;
+                        [...Array(row.length)].map(() => this.editorDelChar());
+                        this.backup = backup;
+                    } else if (sequence === "D") {
+                        const backup = JSON.stringify(this.E);
+
+                        [...Array(row.length - this.E.cx)].map(() => this.editorDelChar());
+                        this.backup = backup;
+                    }
                 }
                 break;
             case "p":

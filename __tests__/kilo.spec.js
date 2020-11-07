@@ -229,11 +229,18 @@ describe("Kilo", () => {
         variables.k.editorReadKey("u", { name: "u" }); // rollback
         variables.k.editorReadKey("j", { name: "j" }); // move to 0,1
         variables.k.editorReadKey("x", { name: "x" }); // delete
+
         expect(variables.k.E.erow[1]).toEqual("Copyright (c) 2020 Fumikazu Fujiwara | Freddie"); // no change
         expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(1);
         variables.k.editorReadKey("u", { name: "u" }); // rollback
         variables.k.editorReadKey("up", { name: "up" }); // move to 0,0
+
+        variables.k.editorReadKey("l", { name: "l" }); // move to 1,0
+        variables.k.editorReadKey("d", { name: "d", sequence: "D" }); // Delete after this.E.cx
+        expect(variables.k.E.erow[0]).toEqual("M"); // M"IT Licence" <- delete
+        variables.k.editorReadKey("u", { name: "u" }); // rollback
+        variables.k.editorReadKey("h", { name: "h" }); // move to 0,0
 
         // yank & paste
         expect(variables.k.E.erow.length).toEqual(21);
