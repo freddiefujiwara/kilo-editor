@@ -767,6 +767,7 @@ class Kilo {
             process.stdout.on("resize", () => {
                 this.E.screenrows = process.stdout.rows - 2; // status bar and message bar
                 this.E.screencols = process.stdout.columns;
+                this.editorRefreshScreen();
             });
         } catch (e) {
             this.die(e);
