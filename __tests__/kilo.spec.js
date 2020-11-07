@@ -67,33 +67,37 @@ describe("Kilo", () => {
 
         variables.k.editorReadKey("", { name: "pagedown" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(15);
-        expect(variables.k.E.rowoff).toEqual(8);
+        expect(variables.k.E.cy).toEqual(5);
+        expect(variables.k.E.rowoff).toEqual(3);
 
         variables.k.editorReadKey("", { name: "j" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(16);
-        expect(variables.k.E.rowoff).toEqual(9);
+        expect(variables.k.E.cy).toEqual(6);
+        expect(variables.k.E.rowoff).toEqual(4);
 
-        variables.k.editorReadKey("", { name: "pagedown" });
+        variables.k.editorReadKey("", { name: "g", sequence: "G" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(21);
-        expect(variables.k.E.rowoff).toEqual(14);
+        expect(variables.k.E.cy).toEqual(20);
+        expect(variables.k.E.rowoff).toEqual(18);
 
         variables.k.editorReadKey("", { name: "up" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(20);
-        expect(variables.k.E.rowoff).toEqual(14);
+        expect(variables.k.E.cy).toEqual(19);
+        expect(variables.k.E.rowoff).toEqual(18);
 
         variables.k.editorReadKey("", { name: "pageup" });
         variables.k.editorScroll();
-        expect(variables.k.E.cy).toEqual(6);
-        expect(variables.k.E.rowoff).toEqual(6);
+        expect(variables.k.E.cy).toEqual(15);
+        expect(variables.k.E.rowoff).toEqual(15);
 
         variables.k.editorReadKey("", { name: "pageup" });
         variables.k.editorScroll();
+        expect(variables.k.E.cy).toEqual(12);
+        expect(variables.k.E.rowoff).toEqual(12);
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
+        expect(variables.k.E.cx).toEqual(0);
         expect(variables.k.E.cy).toEqual(0);
-        expect(variables.k.E.rowoff).toEqual(0);
 
         // horizontal cursor move
         variables.k.editorReadKey("", { name: "right" });
@@ -104,17 +108,17 @@ describe("Kilo", () => {
         variables.k.editorReadKey("", { name: "end" });
         variables.k.editorScroll();
         expect(variables.k.E.cx).toEqual(11);
-        expect(variables.k.E.coloff).toEqual(2);
+        expect(variables.k.E.coloff).toEqual(7);
 
         variables.k.editorReadKey("", { name: "left" });
         variables.k.editorScroll();
         expect(variables.k.E.cx).toEqual(10);
-        expect(variables.k.E.coloff).toEqual(2);
+        expect(variables.k.E.coloff).toEqual(7);
 
         variables.k.editorReadKey("", { name: "l" });
         variables.k.editorScroll();
         expect(variables.k.E.cx).toEqual(11);
-        expect(variables.k.E.coloff).toEqual(2);
+        expect(variables.k.E.coloff).toEqual(7);
 
         variables.k.editorReadKey("", { name: "right" });
         variables.k.editorScroll();
@@ -126,7 +130,7 @@ describe("Kilo", () => {
         variables.k.editorScroll();
         expect(variables.k.E.cy).toEqual(0);
         expect(variables.k.E.cx).toEqual(11);
-        expect(variables.k.E.coloff).toEqual(2);
+        expect(variables.k.E.coloff).toEqual(7);
 
         variables.k.editorReadKey("", { name: "home" });
         variables.k.editorScroll();
@@ -594,8 +598,8 @@ describe("Kilo", () => {
         process.stdout.write = jest.fn();
         process.stdout.on = jest.fn();
         process.stdin.on = jest.fn();
-        process.stdout.rows = 10;
-        process.stdout.columns = 10;
+        process.stdout.rows = 5;
+        process.stdout.columns = 5;
     });
     afterEach(() => {
         jest.runOnlyPendingTimers();
