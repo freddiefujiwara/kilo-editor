@@ -360,16 +360,10 @@ class Kilo {
      * @returns {void}
      */
     editorReadKey(str, key) {
-        const row = (this.E.cy >= this.E.erow.length) ? false : this.E.erow[this.E.cy];
-
         try {
             if (key.meta) {
                 this.insert = false;
                 this.search = false;
-                this.sx = [];
-                this.sy = [];
-                this.si = 0;
-                this.sbuf = "";
             } else if (key.ctrl) {
                 switch (key.name) {
                     case "q":
@@ -386,133 +380,23 @@ class Kilo {
                     if (typeof key.name === "undefined") { // not insert and not alphabet
                         switch (key.sequence) {
                             case "$":
-                                if (this.E.cy &lt; this.E.erow.length) {
-                                    this.E.cx = this.E.erow[this.E.cy].length;
-                                }
+                                this.editorMoveCursor("end");
                                 break;
                             case "^":
-                                this.E.cx = 0;
+                                this.editorMoveCursor("home");
                                 break;
                             case "/":
                                 this.search = true;
+                                this.sx = [];
+                                this.sy = [];
+                                this.si = 0;
+                                this.sbuf = "";
                                 break;
                             default:
                                 break;
                         }
                     } else { // not insert and alphabet
-                        switch (key.name) {
-                            case "home":
-                            case "0":
-                                this.E.cx = 0;
-                                break;
-                            case "end":
-                                if (this.E.cy &lt; this.E.erow.length) {
-                                    this.E.cx = this.E.erow[this.E.cy].length;
-                                }
-                                break;
-                            case "return":
-                                this.editorMoveCursor("down");
-                                break;
-                            case "backspace":
-                                this.editorMoveCursor("left");
-                            case "delete":
-                            case "x":
-                                this.editorDelChar();
-                                if (row !== false &amp;&amp; row.length === 0) {
-                                    this.editorMoveCursor("down");
-                                }
-                                break;
-                            case "a":
-                                this.editorMoveCursor("right");
-                            case "insert":
-                            case "i":
-                                this.insert = true;
-                                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${this.insert ? "-- INSERT --" : ""}`);
-                                this.editorRefreshScreen();
-                                break;
-                            case "o":
-                                if (key.sequence === "O") {
-                                    this.editorInsertRow();
-                                    this.E.cx = 0;
-                                    this.editorUpdateRow();
-                                } else {
-                                    this.editorMoveCursor("down");
-                                    this.editorInsertRow();
-                                    this.E.cx = 0;
-                                    this.editorUpdateRow();
-                                }
-                                this.insert = true;
-                                break;
-                            case "u":
-                                {
-                                    const backupu = this.E;
-
-                                    this.E = JSON.parse(this.backup);
-                                    this.backup = JSON.stringify(backupu);
-                                }
-                                break;
-                            case "y":
-                                if (row !== false &amp;&amp; this.prev === "y") { // yy yank
-                                    this.ybuf = row;
-                                }
-                            case "g":
-                                if (key.sequence === "G") {
-                                    this.E.cx = 0;
-                                    this.E.cy = this.E.erow.length > 0 ? this.E.erow.length - 1 : 0;
-                                } else if (this.prev === "g") { // gg  to top
-                                    this.E.cx = 0;
-                                    this.E.cy = 0;
-                                }
-                                break;
-                            case "d":
-                                if (row !== false &amp;&amp; this.prev === "d") { // dd delete a row
-                                    const backup = JSON.stringify(this.E);
-
-                                    this.E.cx = 0;
-                                    let times = row.length;
-
-                                    this.ybuf = row;
-                                    while (times--) {
-                                        this.editorDelChar();
-                                    }
-                                    this.backup = backup;
-                                }
-                                break;
-                            case "p":
-                                this.editorMoveCursor("down");
-                                this.editorInsertRow(this.ybuf);
-                                this.editorUpdateRow();
-                                break;
-                            case "pageup":
-                                this.E.cy = this.E.rowoff;
-                            case "pagedown":
-                                {
-                                    if (key.name === "pagedown") {
-                                        this.E.cy = this.E.rowoff + this.E.screenrows - 1;
-                                        if (this.E.cy > this.E.erow.length) {
-                                            this.E.cy = this.E.erow.length;
-                                        }
-                                    }
-                                    let times = this.E.screenrows;
-
-                                    while (times--) {
-                                        this.editorMoveCursor(key.name === "pageup" ? "up" : "down");
-                                    }
-                                }
-                                break;
-                            case "left":
-                            case "right":
-                            case "up":
-                            case "down":
-                            case "h":
-                            case "l":
-                            case "k":
-                            case "j":
-                                this.editorMoveCursor(key.name);
-                                break;
-                            default:
-                                break;
-                        }
+                        this.editorMoveCursor(key.name, key.sequence);
                     }
                     this.prev = key.name;
                 } else if (this.search &amp;&amp; !this.insert) { // search mode
@@ -523,10 +407,6 @@ class Kilo {
                             break;
                         case "return":
                             this.search = false;
-                            this.sx = [];
-                            this.sy = [];
-                            this.si = 0;
-                            this.sbuf = "";
                             break;
                         case "right":
                         case "left":
@@ -559,63 +439,23 @@ class Kilo {
                                 this.E.cy = this.sy[this.si];
                             }
                     }
-                } else { // insert mode
-                    switch (key.name) {
-                        case "home":
-                            this.E.cx = 0;
-                            break;
-                        case "end":
-                            if (this.E.cy &lt; this.E.erow.length) {
-                                this.E.cx = this.E.erow[this.E.cy].length;
-                            }
-                            break;
-                        case "return":
-                            this.editorInsertRow();
-                            this.editorMoveCursor("home");
-                            this.editorMoveCursor("down");
-                            this.editorUpdateRow();
-                            break;
-                        case "backspace":
-                            this.editorMoveCursor("left");
-                        case "delete":
-                            this.editorDelChar();
-                            if (row !== false &amp;&amp; row.length === 0) {
-                                this.editorMoveCursor("down");
-                            }
-                            break;
-                        case "pageup":
-                            this.E.cy = this.E.rowoff;
-                        case "pagedown":
-                            {
-                                if (key.name === "pagedown") {
-                                    this.E.cy = this.E.rowoff + this.E.screenrows - 1;
-                                    if (this.E.cy > this.E.erow.length) {
-                                        this.E.cy = this.E.erow.length;
-                                    }
-                                }
-                                let times = this.E.screenrows;
-
-                                while (times--) {
-                                    this.editorMoveCursor(key.name === "pageup" ? "up" : "down");
-                                }
-                            }
-                            break;
-                        case "left":
-                        case "right":
-                        case "up":
-                        case "down":
-                            this.editorMoveCursor(key.name);
-                            break;
-                        default:
-                            if (this.insert &amp;&amp; /^[\ta-z0-9!"#$%&amp;'()*+,./:;&lt;=>?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {
-                                this.editorInsertChar(key.sequence);
-                            }
+                } else if (this.insert) { // insert mode
+                    if (/^[\ta-z0-9!"#$%&amp;'()*+,./:;&lt;=>?@[\]\\ ^_`{|}~-]$/ui.test(key.sequence)) {
+                        this.editorInsertChar(key.sequence);
+                    } else if (key.name === "return") {
+                        this.editorInsertRow();
+                        this.editorMoveCursor("home");
+                        this.editorMoveCursor("down");
+                        this.editorUpdateRow();
+                    } else {
+                        this.editorMoveCursor(key.name, key.sequence);
                     }
                 }
                 const search = this.search ? `/${this.sbuf} (${this.sx.length}) found &lt;-prev:next->)` : "";
 
                 this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${search} - ${this.insert ? "-- INSERT --" : ""}`);
             }
+
             this.editorRefreshScreen();
         } catch (e) {
             this.die(e);
@@ -635,12 +475,102 @@ class Kilo {
     /**
      * handle key action for cursor movement
      * @param {string} name key.name
+     * @param {string} sequence key.sequence
      * @returns {void}
      */
-    editorMoveCursor(name) {
+    editorMoveCursor(name, sequence) {
         let row = (this.E.cy >= this.E.erow.length) ? false : this.E.erow[this.E.cy];
 
         switch (name) {
+            case "home":
+            case "0":
+                this.E.cx = 0;
+                break;
+            case "end":
+                if (this.E.cy &lt; this.E.erow.length) {
+                    this.E.cx = this.E.erow[this.E.cy].length;
+                }
+                break;
+            case "return":
+                this.editorMoveCursor("down");
+                break;
+            case "backspace":
+                this.editorMoveCursor("left");
+            case "delete":
+            case "x":
+                this.editorDelChar();
+                if (row !== false &amp;&amp; row.length === 0) {
+                    this.editorMoveCursor("down");
+                }
+                break;
+            case "a":
+                this.editorMoveCursor("right");
+            case "insert":
+            case "i":
+                this.insert = true;
+                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - -- INSERT --`);
+                this.editorRefreshScreen();
+                break;
+            case "o":
+                if (sequence === "O") {
+                    this.editorInsertRow();
+                    this.E.cx = 0;
+                    this.editorUpdateRow();
+                } else {
+                    this.editorMoveCursor("down");
+                    this.editorInsertRow();
+                    this.E.cx = 0;
+                    this.editorUpdateRow();
+                }
+                this.insert = true;
+                break;
+            case "u":
+                {
+                    const backupu = this.E;
+
+                    this.E = JSON.parse(this.backup);
+                    this.backup = JSON.stringify(backupu);
+                }
+                break;
+            case "y":
+                if (row !== false &amp;&amp; this.prev === "y") { // yy yank
+                    this.ybuf = row;
+                }
+            case "g":
+                if (sequence === "G") {
+                    this.E.cx = 0;
+                    this.E.cy = this.E.erow.length > 0 ? this.E.erow.length - 1 : 0;
+                } else if (this.prev === "g") { // gg  to top
+                    this.E.cx = 0;
+                    this.E.cy = 0;
+                }
+                break;
+            case "d":
+                if (row !== false &amp;&amp; this.prev === "d") { // dd delete a row
+                    const backup = JSON.stringify(this.E);
+
+                    this.E.cx = 0;
+                    this.ybuf = row;
+                    [...Array(row.length)].map(() => this.editorDelChar());
+                    this.backup = backup;
+                }
+                break;
+            case "p":
+                this.editorMoveCursor("down");
+                this.editorInsertRow(this.ybuf);
+                this.editorUpdateRow();
+                break;
+            case "pageup":
+                this.E.cy = this.E.rowoff;
+            case "pagedown":
+                if (name === "pagedown") {
+                    this.E.cy = this.E.rowoff + this.E.screenrows - 1;
+                    if (this.E.cy > this.E.erow.length) {
+                        this.E.cy = this.E.erow.length;
+                    }
+                }
+                [...Array(this.E.screenrows)].map(() => this.editorMoveCursor(name === "pageup" ? "up" : "down"));
+                break;
             case "h":
             case "left":
                 if (this.E.cx > 0) {
@@ -729,12 +659,12 @@ class Kilo {
             if (filerow >= this.E.erow.length) {
                 if (this.E.erow.length === 0 &amp;&amp; y === parseInt(this.E.screenrows / 3, 10)) {
                     const welcome = `Kilo editor -- version ${pkg.version}`;
-                    let welcomlen = welcome.length;
+                    let welcomelen = welcome.length;
 
-                    if (welcomlen > this.E.screencols) {
-                        welcomlen = this.E.screencols;
+                    if (welcomelen > this.E.screencols) {
+                        welcomelen = this.E.screencols;
                     }
-                    let padding = parseInt((this.E.screencols - welcomlen) / 2, 10);
+                    let padding = parseInt((this.E.screencols - welcomelen) / 2, 10);
 
                     if (padding > 0) {
                         this.abuf += "~";
@@ -782,9 +712,9 @@ class Kilo {
                 , (match, p1, p2, p3) => `\x1b[35m${p1}${p2}${p3}\x1b[39m`) // string quote
             .replace(/(&amp;{1,2}|[-*+\\|?&lt;>;:=!])/ug // operator
                 , (match, p1) => `\x1b[36m${p1}\x1b[39m`)
-            .replace(/\b(try|let|const|constructor|require|this|new|undefined|static)\b/ug // keyword
+            .replace(/\b(typeof|try|let|const|constructor|require|this|new|undefined|static)\b/ug // keyword
                 , (match, p1) => `\x1b[32m${p1}\x1b[39m`)
-            .replace(/\b(break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|in|instanceof|new|return|switch)\b/ug // reserved
+            .replace(/\b(break|case|catch|continue|debugger|default|delete|do|else|finally|for|function|if|while|in|instanceof|new|return|switch)\b/ug // reserved
                 , (match, p1) => `\x1b[33m${p1}\x1b[39m`)
             .replace(/(\/\/.*$)/ug // comment out
                 , (match, p1) => `\x1b[36m${p1}\x1b[39m`);
@@ -808,7 +738,7 @@ class Kilo {
         }
     }
 }
-if (typeof module !== "undefined" &amp;&amp; typeof module.exports !== "undefined") {
+if (typeof module !== "undefined") {
     module.exports = Kilo;
 }
 </code></pre>
@@ -831,7 +761,7 @@ if (typeof module !== "undefined" &amp;&amp; typeof module.exports !== "undefine
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sat Nov 07 2020 10:08:49 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sat Nov 07 2020 11:56:56 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
