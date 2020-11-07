@@ -338,7 +338,7 @@ describe("Kilo", () => {
         expect(variables.k.E.cx).toEqual(68);
         expect(variables.k.E.cy).toEqual(16);
         [{ name: "backspace" }, { name: "delete" }].forEach(key => {
-            variables.k.editorReadKey("", key); // search mode
+            variables.k.editorReadKey("", key);
             expect(variables.k.search).toBeTruthy();
             expect(variables.k.sbuf).toEqual("");
             expect(variables.k.si).toEqual(2);
@@ -346,17 +346,76 @@ describe("Kilo", () => {
             expect(variables.k.sy.length).toEqual(3);
         });
         [{ name: "return" }, { meta: true }].forEach(key => {
-            variables.k.editorReadKey("", key); // search mode
+            variables.k.editorReadKey("", key);
             expect(variables.k.search).toBeFalsy();
             expect(variables.k.sbuf).toEqual("");
             expect(variables.k.si).toEqual(0);
             expect(variables.k.sx.length).toEqual(0);
             expect(variables.k.sy.length).toEqual(0);
         });
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
 
         //
         // -- INSERT --
         //
+        expect(variables.k.insert).toBeFalsy();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert mode
+        expect(variables.k.insert).toBeTruthy();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.E.erow[0]).toEqual("iMIT License");
+        variables.k.editorReadKey("", { meta: true });
+        variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+
+        variables.k.editorReadKey("", { name: "insert" }); // insert mode
+        expect(variables.k.insert).toBeTruthy();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.E.erow[0]).toEqual("iMIT License");
+        variables.k.editorReadKey("", { meta: true });
+        variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+
+        variables.k.editorReadKey("a", { name: "a", sequence: "a" }); // insert mode
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.E.erow[0]).toEqual("MiIT License");
+        variables.k.editorReadKey("", { meta: true });
+        variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+
+        variables.k.editorReadKey("", { name: "end" }); // to the end
+        variables.k.editorReadKey("h", { name: "h" }); // to the end - 1
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert mode
+        expect(variables.k.insert).toBeTruthy();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.E.erow[0]).toEqual("MIT Licensie");
+        variables.k.editorReadKey("", { meta: true });
+        variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+
+        variables.k.editorReadKey("a", { name: "a", sequence: "a" }); // insert mode
+        expect(variables.k.insert).toBeTruthy();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.E.erow[0]).toEqual("MIT Licensei");
+        variables.k.editorReadKey("", { meta: true });
+        variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+
+        variables.k.editorReadKey("o", { name: "o", sequence: "o" }); // insert mode
+        expect(variables.k.insert).toBeTruthy();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.E.erow[1]).toEqual("i");
+        variables.k.editorReadKey("", { meta: true });
+        variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
+        variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
+        expect(variables.k.E.cx).toEqual(0);
+        expect(variables.k.E.cy).toEqual(0);
+
+        variables.k.editorReadKey("O", { name: "o", sequence: "O" }); // insert mode
+        expect(variables.k.insert).toBeTruthy();
+        variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
+        expect(variables.k.E.erow[0]).toEqual("i");
+        variables.k.editorReadKey("", { meta: true });
+        variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
+
     });
     it(" editorResize() : can resize properly", () => {
         expect(variables.k.editorResize).toBeInstanceOf(Function);
