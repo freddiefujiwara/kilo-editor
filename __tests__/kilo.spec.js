@@ -358,6 +358,10 @@ describe("Kilo", () => {
         // -- INSERT --
         //
     });
+    it(" editorResize() : can resize properly", () => {
+        expect(variables.k.editorResize).toBeInstanceOf(Function);
+        variables.k.editorResize();
+    });
     it(" editorRefreshScreen() : can refresh the screen", () => {
         expect(variables.k.editorRefreshScreen).toBeInstanceOf(Function);
         variables.k.editorRefreshScreen();

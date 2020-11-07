@@ -595,6 +595,16 @@ class Kilo {
     }
 
     /**
+     * resize terminal
+     * @returns {void}
+     */
+    editorResize() {
+        this.E.screenrows = process.stdout.rows - 2; // status bar and message bar
+        this.E.screencols = process.stdout.columns;
+        this.editorRefreshScreen();
+    }
+
+    /**
      * handle key action for cursor movement
      * @param {string} name key.name
      * @returns {void}
@@ -764,11 +774,7 @@ class Kilo {
             }
             this.editorRefreshScreen();
             process.stdin.on("keypress", this.editorReadKey.bind(this));
-            process.stdout.on("resize", () => {
-                this.E.screenrows = process.stdout.rows - 2; // status bar and message bar
-                this.E.screencols = process.stdout.columns;
-                this.editorRefreshScreen();
-            });
+            process.stdout.on("resize", this.editorResize.bind(this));
         } catch (e) {
             this.die(e);
         }
