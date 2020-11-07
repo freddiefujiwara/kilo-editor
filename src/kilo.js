@@ -478,6 +478,7 @@ class Kilo {
                 if (row !== false && this.prev === "y") { // yy yank
                     this.ybuf = row;
                 }
+                break;
             case "g":
                 if (sequence === "G") {
                     this.E.cx = 0;
