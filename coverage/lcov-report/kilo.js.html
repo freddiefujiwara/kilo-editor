@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">99.09% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>328/331</span>
+                <span class='fraction'>325/328</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">95.5% </span>
+                <span class="strong">95.45% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>191/200</span>
+                <span class='fraction'>189/198</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">99.08% </span>
+                <span class="strong">99.07% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>322/325</span>
+                <span class='fraction'>319/322</span>
             </div>
         
             
@@ -774,10 +774,7 @@
 <a name='L715'></a><a href='#L715'>715</a>
 <a name='L716'></a><a href='#L716'>716</a>
 <a name='L717'></a><a href='#L717'>717</a>
-<a name='L718'></a><a href='#L718'>718</a>
-<a name='L719'></a><a href='#L719'>719</a>
-<a name='L720'></a><a href='#L720'>720</a>
-<a name='L721'></a><a href='#L721'>721</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L718'></a><a href='#L718'>718</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
@@ -1228,9 +1225,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">238x</span>
+<span class="cline-any cline-yes">237x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">238x</span>
+<span class="cline-any cline-yes">237x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">10x</span>
@@ -1240,9 +1237,6 @@
 <span class="cline-any cline-yes">7x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1353,6 +1347,7 @@
 <span class="cline-any cline-yes">45x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">71x</span>
 <span class="cline-any cline-yes">47x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1360,10 +1355,9 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">238x</span>
-<span class="cline-any cline-yes">238x</span>
+<span class="cline-any cline-yes">237x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">238x</span>
+<span class="cline-any cline-yes">237x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1948,7 +1942,7 @@ class Kilo {
      * @returns {void}
      */
     editorMoveCursor(name, sequence) {
-        let row = (this.E.cy &gt;= this.E.erow.length) ? false : this.E.erow[this.E.cy];
+        const row = (this.E.cy &gt;= this.E.erow.length) ? false : this.E.erow[this.E.cy];
 &nbsp;
         switch (name) {
             case "home":
@@ -1959,9 +1953,6 @@ class Kilo {
                 if (this.E.cy &lt; this.E.erow.length) {
                     this.E.cx = this.E.erow[this.E.cy].length;
                 }
-                break;
-            case "return":
-                this.editorMoveCursor("down");
                 break;
             case "backspace":
                 this.editorMoveCursor("left");
@@ -2073,6 +2064,7 @@ class Kilo {
                 break;
             case "j":
             case "down":
+            case "return":
                 if (this.E.cy &lt; this.E.erow.length) {
                     this.E.cy++;
                 }
@@ -2080,8 +2072,7 @@ class Kilo {
             default:
                 break;
         }
-        row = (this.E.cy &gt;= this.E.erow.length) ? false : this.E.erow[this.E.cy];
-        const rowlen = row ? row.length : 0;
+        const rowlen = (this.E.cy &gt;= this.E.erow.length) ? 0 : this.E.erow[this.E.cy].length;
 &nbsp;
         if (this.E.cx &gt; rowlen) {
             this.E.cx = rowlen;
@@ -2095,8 +2086,8 @@ class Kilo {
     editorDrawStatusBar() {
         this.abuf += "\x1b[7m"; // invert the colors. (usually black -&gt; white)
         const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty &gt; 0 ? "(modified)" : ""}`;
-        let len = status.length;
         const rstatus = `${parseInt((this.E.cy + 1) / this.E.erow.length * 100, 10)}% ${this.E.cy + 1}/${this.E.erow.length}`;
+        let len = status.length;
 &nbsp;
         if (len &gt; this.E.screencols) {
             len = this.E.screencols;
@@ -2224,7 +2215,7 @@ class Kilo {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank">istanbul</a>
-                at Sat Nov 07 2020 12:36:16 GMT+0000 (Coordinated Universal Time)
+                at Sat Nov 07 2020 12:54:33 GMT+0000 (Coordinated Universal Time)
             </div>
         </div>
         <script src="prettify.js"></script>
