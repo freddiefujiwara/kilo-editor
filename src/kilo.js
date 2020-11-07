@@ -449,7 +449,7 @@ class Kilo {
      * @returns {void}
      */
     editorMoveCursor(name, sequence) {
-        let row = (this.E.cy >= this.E.erow.length) ? false : this.E.erow[this.E.cy];
+        const row = (this.E.cy >= this.E.erow.length) ? false : this.E.erow[this.E.cy];
 
         switch (name) {
             case "home":
@@ -460,9 +460,6 @@ class Kilo {
                 if (this.E.cy < this.E.erow.length) {
                     this.E.cx = this.E.erow[this.E.cy].length;
                 }
-                break;
-            case "return":
-                this.editorMoveCursor("down");
                 break;
             case "backspace":
                 this.editorMoveCursor("left");
@@ -574,6 +571,7 @@ class Kilo {
                 break;
             case "j":
             case "down":
+            case "return":
                 if (this.E.cy < this.E.erow.length) {
                     this.E.cy++;
                 }
@@ -581,8 +579,7 @@ class Kilo {
             default:
                 break;
         }
-        row = (this.E.cy >= this.E.erow.length) ? false : this.E.erow[this.E.cy];
-        const rowlen = row ? row.length : 0;
+        const rowlen = (this.E.cy >= this.E.erow.length) ? 0 : this.E.erow[this.E.cy].length;
 
         if (this.E.cx > rowlen) {
             this.E.cx = rowlen;
@@ -596,8 +593,8 @@ class Kilo {
     editorDrawStatusBar() {
         this.abuf += "\x1b[7m"; // invert the colors. (usually black -> white)
         const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty > 0 ? "(modified)" : ""}`;
-        let len = status.length;
         const rstatus = `${parseInt((this.E.cy + 1) / this.E.erow.length * 100, 10)}% ${this.E.cy + 1}/${this.E.erow.length}`;
+        let len = status.length;
 
         if (len > this.E.screencols) {
             len = this.E.screencols;
