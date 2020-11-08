@@ -6,6 +6,7 @@ const os = require("os");
 const KILO_TAB_STOP = 8;
 const MULTI_BYTE = 2;
 const SEARCHABLE_CHARS = /^[\ta-z0-9!"#$%&'()*+,./:;<=>?@[\]\\ ^_`{|}~-]$/ui;
+const MODE = { NORMAL: 0, INSERT: 1, SEARCH: 2, COMMAND: 3 };
 
 /**
  * @classdesc This is Kilo class
@@ -41,15 +42,14 @@ class Kilo {
         if (argv && argv.length > 0) {
             this.E.filename = argv[0];
         }
-        this.editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
+      this.editorSetStatusMessage("HELP): k:up/j:down/l:right/h:left | i:insert | /:search | :w save/ :q quit/ :wq save & quit");
         this.backup = {}; // for undo
-        this.insert = false; // insert mode
-        this.search = false; // insert mode
+        this.mode = MODE.NORMAL; // mode;
         this.sx = [];// searched cursor position x
         this.sy = []; // searched cursor position y
         this.si = 0; // searched index
         this.abuf = ""; // for draw
-        this.sbuf = ""; // for search
+        this.scbuf = ""; // for search
         this.ybuf = ""; // for yank
         this.prev = ""; // for 2 setp commnd ex) dd yy
     }
@@ -197,7 +197,6 @@ class Kilo {
         if (this.E.erow.length <= this.E.cy) {
             return;
         }
-        this.backup = JSON.stringify(this.E);
         const row = this.E.erow[this.E.cy];
         const newRow = `${row.slice(0, this.E.cx)}${row.slice(this.E.cx + 1)}`;
 
@@ -230,10 +229,10 @@ class Kilo {
         let rx = 0;
 
         for (let j = 0; j < cx; j++) {
-            if (chars[j] === "\t") {
+            if (chars[j] === "\t") { // tab
                 rx += (KILO_TAB_STOP - 1) - (rx % KILO_TAB_STOP);
             }
-            if (/%[89ABab]/ug.test(encodeURIComponent(chars[j]))) {
+            if (/%[89ABab]/ug.test(encodeURIComponent(chars[j]))) { // multibyte
                 rx += (MULTI_BYTE - 1) - (rx % MULTI_BYTE);
             }
             rx++;
@@ -253,19 +252,19 @@ class Kilo {
      */
     editorScroll() {
         this.E.rx = 0;
-        if (this.E.cy < this.E.erow.length) {
+        if (this.E.cy < this.E.erow.length) { // calculate rx if cursor is in the file
             this.E.rx = Kilo.editorRowCxToRx(this.E.erow[this.E.cy], this.E.cx);
         }
-        if (this.E.cy < this.E.rowoff) {
+        if (this.E.cy < this.E.rowoff) { // move cy to the top of the window if cy is off the top of the scrolling window
             this.E.rowoff = this.E.cy;
         }
-        if (this.E.cy >= this.E.rowoff + this.E.screenrows) {
+        if (this.E.cy >= this.E.rowoff + this.E.screenrows) { // move cy to the bottom of the window if cy is off the bottom of the scrolling window
             this.E.rowoff = this.E.cy - this.E.screenrows + 1;
         }
-        if (this.E.rx < this.E.coloff) {
+        if (this.E.rx < this.E.coloff) { // move rx to the left of the window if rx is off the left of the scrolling window
             this.E.coloff = this.E.rx;
         }
-        if (this.E.rx >= this.E.coloff + this.E.screencols) {
+        if (this.E.rx >= this.E.coloff + this.E.screencols) { // move rx to the right of the window if rx is off the right of the scrolling window
             this.E.coloff = this.E.rx - this.E.screencols + 1;
         }
     }
@@ -307,21 +306,11 @@ class Kilo {
     editorReadKey(str, key) {
         try {
             if (key.meta) {
-                this.insert = false;
-                this.search = false;
-            } else if (key.ctrl) {
-                switch (key.name) {
-                    case "q":
-                        this.die("BYE", 0);
-                        break;
-                    case "s":
-                        this.editorSave();
-                        break;
-                    default:
-                        break;
-                }
+                this.mode = MODE.NORMAL;
             } else {
-                if (!this.insert && !this.search) { // not insert mode
+                let command = "";
+
+                if (this.mode === MODE.NORMAL) {
                     if (typeof key.name === "undefined") { // not insert and not alphabet
                         switch (key.sequence) {
                             case "$":
@@ -331,11 +320,17 @@ class Kilo {
                                 this.editorMoveCursor("home");
                                 break;
                             case "/":
-                                this.search = true;
+                                this.mode = MODE.SEARCH;
                                 this.sx = [];
                                 this.sy = [];
+                                this.scbuf = "";
                                 this.si = 0;
-                                this.sbuf = "";
+                                command = `/${this.scbuf}`;
+                                break;
+                            case ":":
+                                this.mode = MODE.COMMAND;
+                                this.scbuf = "";
+                                command = `:${this.scbuf}`;
                                 break;
                             default:
                                 break;
@@ -344,47 +339,7 @@ class Kilo {
                         this.editorMoveCursor(key.name, key.sequence);
                     }
                     this.prev = key.name;
-                } else if (this.search && !this.insert) { // search mode
-                    switch (key.name) {
-                        case "backspace":
-                        case "delete":
-                            this.sbuf = "";
-                            break;
-                        case "return":
-                            this.search = false;
-                            break;
-                        case "right":
-                        case "left":
-                            if (key.name === "right") {
-                                this.si++;
-                            } else {
-                                this.si--;
-                            }
-                            if (this.si >= this.sx.length) {
-                                this.si = 0;
-                            }
-                            if (this.si < 0) {
-                                this.si = this.sx.length - 1;
-                            }
-                        default:
-                            if (SEARCHABLE_CHARS.test(key.sequence)) {
-                                this.sbuf += key.sequence;
-                                this.sx = [];
-                                this.sy = [];
-                                this.si = 0;
-                                this.E.erow.forEach((r, y) => {
-                                    [...r.matchAll(new RegExp(this.sbuf.replace(/[.*+?^${}()|[\]\\]/ug, "\\$&"), "ugi"))].forEach(m => {
-                                        this.sx.push(m.index);
-                                        this.sy.push(y);
-                                    });
-                                });
-                            }
-                            if (this.sx.length > this.si) {
-                                this.E.cx = this.sx[this.si];
-                                this.E.cy = this.sy[this.si];
-                            }
-                    }
-                } else if (this.insert) { // insert mode
+                } else if (this.mode === MODE.INSERT) { // insert mode
                     if (SEARCHABLE_CHARS.test(key.sequence)) {
                         this.editorInsertChar(key.sequence);
                     } else if (key.name === "return") {
@@ -395,10 +350,81 @@ class Kilo {
                     } else {
                         this.editorMoveCursor(key.name, key.sequence);
                     }
+                } else if (this.mode === MODE.SEARCH) {
+                    switch (key.name) {
+                        case "return":
+                            this.mode = MODE.NORMAL;
+                        case "backspace":
+                        case "delete":
+                            this.scbuf = "";
+                            break;
+                        case "right":
+                        case "up":
+                            this.si = (this.si + 1) % this.sx.length;
+                            break;
+                        case "left":
+                        case "down":
+                            this.si--;
+                            if (this.si < 0) {
+                                this.si = this.sx.length - 1;
+                            }
+                            break;
+                        default:
+                            if (SEARCHABLE_CHARS.test(key.sequence)) {
+                                this.scbuf += key.sequence;
+                                this.sx = [];
+                                this.sy = [];
+                                this.si = 0;
+                                this.E.erow.forEach((r, y) => {
+                                    [...r.matchAll(new RegExp(this.scbuf.replace(/[.*+?^${}()|[\]\\]/ug, "\\$&"), "ugi"))].forEach(m => {
+                                        this.sx.push(m.index);
+                                        this.sy.push(y);
+                                    });
+                                });
+                            }
+                    }
+                    if (this.sx.length > this.si) {
+                        this.E.cx = this.sx[this.si];
+                        this.E.cy = this.sy[this.si];
+                    }
+                    command = `/${this.scbuf}`;
+                } else if (this.mode === MODE.COMMAND) {
+                    if (key.name === "return") {
+                        switch (this.scbuf) {
+                            case "w":
+                                this.editorSave();
+                                this.editorRefreshScreen();
+                                this.scbuf = "";
+                                return;
+                            case "wq":
+                                this.editorSave();
+                                this.editorRefreshScreen();
+                                this.die("BYE", 0);
+                                this.scbuf = "";
+                                return;
+                            case "q":
+                                this.die("BYE", 0);
+                                break;
+                            default:
+                                break;
+                        }
+                        this.scbuf = "";
+                        command = `:${this.scbuf}`;
+                    } else if (key.name === "delete" || key.name === "backspace") {
+                        if (this.scbuf.length <= 0) {
+                            this.mode = MODE.NORMAL;
+                            command = "";
+                        } else {
+                            this.scbuf = this.scbuf.slice(0, -1);
+                            command = `:${this.scbuf}`;
+                        }
+                    } else if (SEARCHABLE_CHARS.test(key.sequence)) {
+                        this.scbuf += key.sequence;
+                        command = `:${this.scbuf}`;
+                    }
                 }
-                const search = this.search ? `/${this.sbuf} (${this.sx.length}) found <-prev:next->)` : "";
 
-                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - ${search} - ${this.insert ? "-- INSERT --" : ""}`);
+                this.editorSetStatusMessage(`${command} (${this.E.cx}:${this.E.cy})  -- ${Object.keys(MODE)[this.mode]} --`);
             }
 
             this.editorRefreshScreen();
@@ -440,6 +466,7 @@ class Kilo {
                 this.editorMoveCursor("left");
             case "delete":
             case "x":
+                this.backup = JSON.stringify(this.E);
                 this.editorDelChar();
                 if (row !== false && row.length === 0) {
                     this.editorMoveCursor("down");
@@ -449,7 +476,7 @@ class Kilo {
                 this.editorMoveCursor("right");
             case "insert":
             case "i":
-                this.insert = true;
+                this.mode = MODE.INSERT;
                 this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - -- INSERT --`);
                 this.editorRefreshScreen();
                 break;
@@ -464,7 +491,7 @@ class Kilo {
                     this.E.cx = 0;
                     this.editorUpdateRow();
                 }
-                this.insert = true;
+                this.mode = MODE.INSERT;
                 break;
             case "u":
                 {
@@ -491,17 +518,13 @@ class Kilo {
             case "d":
                 if (row !== false) { // dd delete a row
                     if (this.prev === "d") { // dd delete a row
-                        const backup = JSON.stringify(this.E);
-
+                        this.backup = JSON.stringify(this.E);
                         this.E.cx = 0;
                         this.ybuf = row;
                         [...Array(row.length)].map(() => this.editorDelChar());
-                        this.backup = backup;
                     } else if (sequence === "D") {
-                        const backup = JSON.stringify(this.E);
-
+                        this.backup = JSON.stringify(this.E);
                         [...Array(row.length - this.E.cx)].map(() => this.editorDelChar());
-                        this.backup = backup;
                     }
                 }
                 break;

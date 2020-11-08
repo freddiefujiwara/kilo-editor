@@ -149,16 +149,25 @@ describe("Kilo", () => {
 
         // for meta
         variables.k.editorReadKey("", { meta: true });
-        expect(variables.k.insert).toBeFalsy();
-        expect(variables.k.search).toBeFalsy();
+        expect(variables.k.mode).toEqual(0); // NORMAL mode
         expect(variables.k.sx.length).toEqual(0);
         expect(variables.k.sy.length).toEqual(0);
         expect(variables.k.si).toEqual(0);
-        expect(variables.k.sbuf).toEqual("");
+        expect(variables.k.scbuf).toEqual("");
 
-        // for ctrl
-        // ctrl + q -> die("BYE",0);
-        variables.k.editorReadKey("", { ctrl: true, name: "q" });
+        // for COMMAND
+        // :wq -> editorSave() -> die("BYE",0);
+        variables.k.editorReadKey("", { sequence: ":" });
+        expect(variables.k.mode).toEqual(3); // COMMAND mode
+        variables.k.editorReadKey("w", { name: "w", sequence: "w" });
+        variables.k.editorReadKey("q", { name: "q", sequence: "q" });
+        variables.k.editorReadKey("q", { name: "q", sequence: "q" });
+        variables.k.editorReadKey("q", { name: "q", sequence: "q" });
+        expect(variables.k.scbuf).toEqual("wqqq");
+        variables.k.editorReadKey("", { name: "backspace" });// :wqq
+        variables.k.editorReadKey("", { name: "delete" });// :wq
+        expect(variables.k.scbuf).toEqual("wq");
+        variables.k.editorReadKey("", { name: "return" });// :wq
         expect(variables.k.abuf).toEqual("");
         expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 5000);
         expect(process.stdout.cursorTo).toHaveBeenCalledTimes(1);
@@ -171,14 +180,38 @@ describe("Kilo", () => {
         expect(process.exit).toHaveBeenLastCalledWith(0);
         expect(console.error).toHaveBeenCalledTimes(1);
         expect(console.error).toHaveBeenLastCalledWith("BYE");
-
-        variables.k.editorReadKey("", { ctrl: true, name: "h" }); // ctrl + "wrong" key
-        expect(process.stdout.cursorTo).toHaveBeenCalledTimes(1); // no thing
-
-        // ctrl + s -> editorSave
-        variables.k.editorReadKey("", { ctrl: true, name: "s" });
         expect(variables.k.E.statusmsg).toMatch(/\d+ bytes written to disk/u);
         expect(variables.k.E.dirty).toEqual(0);
+
+        // :q -> die("BYE",0);
+        expect(variables.k.mode).toEqual(3); // COMMAND mode
+        variables.k.editorReadKey("q", { name: "q", sequence: "q" });
+        expect(variables.k.scbuf).toEqual("q");
+        variables.k.editorReadKey("", { name: "return" });// :q
+        expect(variables.k.abuf).toEqual("");
+        expect(setTimeout).toHaveBeenLastCalledWith(expect.any(Function), 5000);
+        expect(process.stdout.cursorTo).toHaveBeenCalledTimes(2);
+        expect(process.stdout.cursorTo).toHaveBeenLastCalledWith(0, 0);
+        expect(process.stdout.clearScreenDown).toHaveBeenCalledTimes(2);
+        expect(process.stdout.clearScreenDown).toHaveBeenLastCalledWith();
+        expect(process.stdin.setRawMode).toHaveBeenCalledTimes(2);
+        expect(process.stdin.setRawMode).toHaveBeenLastCalledWith(false);
+        expect(process.exit).toHaveBeenCalledTimes(2);
+        expect(process.exit).toHaveBeenLastCalledWith(0);
+        expect(console.error).toHaveBeenCalledTimes(2);
+        expect(console.error).toHaveBeenLastCalledWith("BYE");
+
+        variables.k.editorReadKey("", { name: "h" }); // ctrl + "wrong" key
+        expect(process.stdout.cursorTo).toHaveBeenCalledTimes(2); // no thing
+
+        // :w -> editorSave
+        variables.k.editorReadKey("w", { name: "w", sequence: "w" });
+        expect(variables.k.scbuf).toEqual("w");
+        variables.k.editorReadKey("", { name: "return" });// :q
+        expect(variables.k.E.statusmsg).toMatch(/\d+ bytes written to disk/u);
+        expect(variables.k.E.dirty).toEqual(0);
+        variables.k.editorReadKey("", { name: "delete" });
+        expect(variables.k.mode).toEqual(0); // NORMAL mode
 
         // for symbol ex) "$","^"
         variables.k.editorReadKey("$", { sequence: "$" });
@@ -196,7 +229,7 @@ describe("Kilo", () => {
         expect(variables.k.E.cy).toEqual(1);
         variables.k.editorReadKey("", { name: "k" }); // go to 0,0
         variables.k.editorReadKey("/", { sequence: "/" }); // search mode
-        expect(variables.k.search).toBeTruthy();
+        expect(variables.k.mode).toEqual(2); // search mode
         variables.k.editorReadKey("", { meta: true }); // go back to NORMAL MODE
         variables.k.editorReadKey("[", { sequence: "[" }); // wrong symbol
         expect(variables.k.E.cx).toEqual(0);
@@ -306,21 +339,21 @@ describe("Kilo", () => {
             expect(blank.E.dirty).toEqual(0);
             expect(blank.abuf).toEqual("");
             expect(blank.ybuf).toEqual("");
-            expect(blank.sbuf).toEqual("");
+            expect(blank.scbuf).toEqual("");
         });
 
 
         //
         // -- SEARCH MODE --
         //
-        expect(variables.k.search).toBeFalsy();
+        expect(variables.k.mode).not.toEqual(2); // search mode
         variables.k.editorReadKey("/", { sequence: "/" }); // search mode
-        expect(variables.k.search).toBeTruthy();
-        expect(variables.k.sbuf).toEqual("");
+        expect(variables.k.mode).toEqual(2); // search mode
+        expect(variables.k.scbuf).toEqual("");
         "all".split("").forEach(k => {
             variables.k.editorReadKey(k, { name: k, sequence: k });
         });
-        expect(variables.k.sbuf).toEqual("all");
+        expect(variables.k.scbuf).toEqual("all");
         expect(variables.k.E.cx).toEqual(56);
         expect(variables.k.E.cy).toEqual(11);
         variables.k.editorReadKey("", { name: "right" });
@@ -346,15 +379,15 @@ describe("Kilo", () => {
         expect(variables.k.E.cy).toEqual(16);
         [{ name: "backspace" }, { name: "delete" }].forEach(key => {
             variables.k.editorReadKey("", key);
-            expect(variables.k.search).toBeTruthy();
-            expect(variables.k.sbuf).toEqual("");
+            expect(variables.k.mode).toEqual(2); // search mode
+            expect(variables.k.scbuf).toEqual("");
             expect(variables.k.si).toEqual(2);
             expect(variables.k.sx.length).toEqual(3);
             expect(variables.k.sy.length).toEqual(3);
         });
         [{ name: "return" }, { meta: true }].forEach(key => {
             variables.k.editorReadKey("", key);
-            expect(variables.k.search).toBeFalsy();
+            expect(variables.k.mode).not.toEqual(2); // SEARCH
         });
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 1st time
         variables.k.editorReadKey("g", { name: "g", sequence: "g" }); // 2nd time
@@ -364,16 +397,16 @@ describe("Kilo", () => {
         //
         // -- INSERT --
         //
-        expect(variables.k.insert).toBeFalsy();
+        expect(variables.k.mode).not.toEqual(1); // INSERT
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert mode
-        expect(variables.k.insert).toBeTruthy();
+        expect(variables.k.mode).toEqual(1); // INSERT
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
         expect(variables.k.E.erow[0]).toEqual("iMIT License");
         variables.k.editorReadKey("", { meta: true });
         variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
 
         variables.k.editorReadKey("", { name: "insert" }); // insert mode
-        expect(variables.k.insert).toBeTruthy();
+        expect(variables.k.mode).toEqual(1); // INSERT
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
         expect(variables.k.E.erow[0]).toEqual("iMIT License");
         variables.k.editorReadKey("", { meta: true });
@@ -388,21 +421,21 @@ describe("Kilo", () => {
         variables.k.editorReadKey("", { name: "end" }); // to the end
         variables.k.editorReadKey("h", { name: "h" }); // to the end - 1
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert mode
-        expect(variables.k.insert).toBeTruthy();
+        expect(variables.k.mode).toEqual(1); // INSERT
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
         expect(variables.k.E.erow[0]).toEqual("MIT Licensie");
         variables.k.editorReadKey("", { meta: true });
         variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
 
         variables.k.editorReadKey("a", { name: "a", sequence: "a" }); // insert mode
-        expect(variables.k.insert).toBeTruthy();
+        expect(variables.k.mode).toEqual(1); // INSERT
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
         expect(variables.k.E.erow[0]).toEqual("MIT Licensei");
         variables.k.editorReadKey("", { meta: true });
         variables.k.editorReadKey("u", { name: "u", sequence: "u" }); // roll back
 
         variables.k.editorReadKey("o", { name: "o", sequence: "o" }); // insert mode
-        expect(variables.k.insert).toBeTruthy();
+        expect(variables.k.mode).toEqual(1); // INSERT
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
         expect(variables.k.E.erow[1]).toEqual("i");
         variables.k.editorReadKey("", { meta: true });
@@ -414,7 +447,7 @@ describe("Kilo", () => {
         expect(variables.k.E.cy).toEqual(0);
 
         variables.k.editorReadKey("O", { name: "o", sequence: "O" }); // insert mode
-        expect(variables.k.insert).toBeTruthy();
+        expect(variables.k.mode).toEqual(1); // INSERT
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
         expect(variables.k.E.erow[0]).toEqual("i");
         variables.k.editorReadKey("", { meta: true });
@@ -426,7 +459,7 @@ describe("Kilo", () => {
         expect(variables.k.E.cy).toEqual(0);
 
         variables.k.editorReadKey("i", { name: "i", sequence: "i" }); // insert "i"
-        expect(variables.k.insert).toBeTruthy();
+        expect(variables.k.mode).toEqual(1); // INSERT
 
         variables.k.editorReadKey("", { name: "down" });
         variables.k.editorScroll();
