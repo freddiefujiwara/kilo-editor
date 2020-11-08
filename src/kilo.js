@@ -387,7 +387,7 @@ class Kilo {
                         this.E.cx = this.sx[this.si];
                         this.E.cy = this.sy[this.si];
                     }
-                    command = `/${this.scbuf}`;
+                    command = `/${this.scbuf} (${this.sx.length}) found <-prev:next->)`;
                 } else if (this.mode === MODE.COMMAND) {
                     if (key.name === "return") {
                         switch (this.scbuf) {
