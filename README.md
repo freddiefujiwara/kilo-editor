@@ -1,7 +1,11 @@
 [![Node.js CI](https://github.com/freddiefujiwara/kilojs/workflows/Node.js%20CI/badge.svg)](https://github.com/freddiefujiwara/kilojs/actions) [![npm version](https://badge.fury.io/js/kilo-editor.svg)](https://badge.fury.io/js/kilo-editor) [![GitHub issues](https://img.shields.io/github/issues/freddiefujiwara/kilo-editor)](https://github.com/freddiefujiwara/kilo-editor/issues)[![GitHub forks](https://img.shields.io/github/forks/freddiefujiwara/kilo-editor)](https://github.com/freddiefujiwara/kilo-editor/network)[![GitHub stars](https://img.shields.io/github/stars/freddiefujiwara/kilo-editor)](https://github.com/freddiefujiwara/kilo-editor/stargazers)[![GitHub license](https://img.shields.io/github/license/freddiefujiwara/kilo-editor)](https://github.com/freddiefujiwara/kilo-editor/blob/main/LICENSE)
 
 # kilo-editor
-JavaScript port for [kilo](https://github.com/snaptoken/kilo-src)
+## What?
+This is a small educational project where I implement (or try to) a basic text editor based on [kilo](https://github.com/snaptoken/kilo-src)
+
+## Why?
+I thought this would be an interesting enough but just-sized project for those of you who are reading JavaScript books and learning Test Driven Development at Jest.
 
 <img src="/publish/images/kilo-editor-demo.gif?raw=true" width="640px">
 
