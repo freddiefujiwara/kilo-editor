@@ -42,7 +42,7 @@ class Kilo {
         if (argv && argv.length > 0) {
             this.E.filename = argv[0];
         }
-      this.editorSetStatusMessage("HELP): k:up/j:down/l:right/h:left | i:insert | /:search | :w save/ :q quit/ :wq save & quit");
+        this.editorSetStatusMessage("HELP): k:up/j:down/l:right/h:left | i:insert | /:search | :w save/ :q quit/ :wq save & quit");
         this.backup = {}; // for undo
         this.mode = MODE.NORMAL; // mode;
         this.sx = [];// searched cursor position x
