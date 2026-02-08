@@ -760,7 +760,9 @@ describe("Kilo", () => {
     afterEach(() => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
-        setTimeoutSpy?.mockRestore();
+        if (setTimeoutSpy) {
+            setTimeoutSpy.mockRestore();
+        }
         setTimeoutSpy = null;
         delete variables.k;
     });
