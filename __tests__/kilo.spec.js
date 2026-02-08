@@ -601,7 +601,7 @@ describe("Kilo", () => {
     it(" editorReadKey() : can handle invalid mode", () => {
         variables.k.mode = 999;
         variables.k.editorReadKey("", { name: "a" });
-        expect(variables.k.E.statusmsg).toMatch(/ \(0:0\)  -- undefined --/u);
+        expect(variables.k.E.statusmsg).toMatch(/ \(0:0\) {2}-- undefined --/u);
     });
     it(" editorReadKey() : can handle error", () => {
         vi.spyOn(variables.k, "_handleNormalMode").mockImplementation(() => {
