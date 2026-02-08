@@ -572,6 +572,45 @@ describe("Kilo", () => {
         expect(variables.k.E.erow[1]).toEqual("MIT License");
 
     });
+    it(" _handleCommandMode() : can handle w/wq with filename", () => {
+        variables.k.mode = 3; // COMMAND
+        variables.k.scbuf = "w newfile.txt";
+        variables.k.editorReadKey("", { name: "return" });
+        expect(variables.k.E.filename).toEqual("newfile.txt");
+        expect(variables.k.E.statusmsg).toMatch(/\d+ bytes written to disk/u);
+
+        variables.k.mode = 3; // COMMAND
+        variables.k.scbuf = "wq newfile2.txt";
+        variables.k.editorReadKey("", { name: "return" });
+        expect(variables.k.E.filename).toEqual("newfile2.txt");
+        expect(process.exit).toHaveBeenCalledWith(0);
+    });
+
+    it(" _handleCommandMode() : can handle unknown command", () => {
+        variables.k.mode = 3; // COMMAND
+        variables.k.scbuf = "unknown";
+        variables.k.editorReadKey("", { name: "return" });
+        expect(variables.k.scbuf).toEqual("");
+    });
+
+    it(" _handleUndo() : can handle empty backup", () => {
+        variables.k.backup = "";
+        variables.k.editorMoveCursor("u");
+        expect(variables.k.backup).toEqual("");
+    });
+    it(" editorReadKey() : can handle invalid mode", () => {
+        variables.k.mode = 999;
+        variables.k.editorReadKey("", { name: "a" });
+        expect(variables.k.E.statusmsg).toMatch(/ \(0:0\) {2}-- undefined --/u);
+    });
+    it(" editorReadKey() : can handle error", () => {
+        vi.spyOn(variables.k, "_handleNormalMode").mockImplementation(() => {
+            throw new Error("test error");
+        });
+        variables.k.mode = 0; // NORMAL
+        variables.k.editorReadKey("", { name: "a" });
+        expect(process.exit).toHaveBeenCalledWith(1);
+    });
     it(" editorResize() : can resize properly", () => {
         expect(variables.k.editorResize).toBeInstanceOf(Function);
         variables.k.editorResize();
@@ -600,6 +639,12 @@ describe("Kilo", () => {
         expect(variables.k.abuf.length).toBe(0);
         variables.k.editorDrawMessageBar();
         expect(variables.k.abuf.length).not.toBe(0);
+    });
+    it(" editorDrawMessageBar() : can handle long message", () => {
+        variables.k.E.screencols = 10;
+        variables.k.E.statusmsg = "This is a very long message";
+        variables.k.editorDrawMessageBar();
+        expect(variables.k.abuf).toMatch(/This is a /u);
     });
     it(" editorDrawRows() : can draw lines", () => {
         variables.k.E.screenrows = 100;
@@ -686,6 +731,12 @@ describe("Kilo", () => {
         variables.k.editorDelChar();
 
     });
+    it(" editorDelChar() : can handle cy out of bounds", () => {
+        variables.k.E.erow = ["test"];
+        variables.k.E.cy = 10;
+        variables.k.editorDelChar();
+        expect(variables.k.E.erow.length).toEqual(1);
+    });
     it(" editorInsertRow(insert) : can insert row", () => {
         expect(variables.k.editorInsertRow).toBeInstanceOf(Function);
         variables.k.editorInsertRow();
@@ -738,6 +789,15 @@ describe("Kilo", () => {
     it(" main : can run properly", () => {
         expect(variables.k.main).toBeInstanceOf(Function);
         variables.k.main();
+    });
+    it(" main() : can handle error", () => {
+        const spy = vi.spyOn(Kilo, "enableRawMode").mockImplementation(() => {
+            throw new Error("test error");
+        });
+
+        variables.k.main();
+        expect(process.exit).toHaveBeenCalledWith(1);
+        spy.mockRestore();
     });
     beforeEach(() => {
         vi.useFakeTimers();
