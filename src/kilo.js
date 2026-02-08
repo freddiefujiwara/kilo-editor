@@ -451,24 +451,24 @@ class Kilo {
      */
     _handleCommandMode(key) {
         if (key.name === "return") {
-            switch (this.scbuf) {
-                case "w":
-                    this.editorSave();
-                    this.editorRefreshScreen();
-                    this.scbuf = "";
-                    return null;
-                case "wq":
-                    this.editorSave();
-                    this.editorRefreshScreen();
+            const [cmd, ...args] = this.scbuf.split(" ");
+            const filename = args.filter(s => s.length > 0).join(" ");
+
+            if (cmd === "w" || cmd === "wq") {
+                if (filename) {
+                    this.E.filename = filename;
+                }
+                this.editorSave();
+                this.editorRefreshScreen();
+                if (cmd === "wq") {
                     this.die("BYE", 0);
-                    this.scbuf = "";
-                    return null;
-                case "q":
-                    this.die("BYE", 0);
-                    this.scbuf = "";
-                    return null;
-                default:
-                    break;
+                }
+                this.scbuf = "";
+                return null;
+            } else if (this.scbuf === "q") {
+                this.die("BYE", 0);
+                this.scbuf = "";
+                return null;
             }
             this.scbuf = "";
             return `:${this.scbuf}`;
