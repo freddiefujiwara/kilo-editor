@@ -5,7 +5,7 @@
   "main": "src/kilo.js",
   "bin": "bin/kilo.js",
   "scripts": {
-    "test": "npx jest --collect-coverage --silent=false --verbose false",
+    "test": "vitest run --coverage",
     "build": "npx jsdoc src/",
     "lint": "npx eslint src/ __tests__/",
     "fix": "npx eslint src/ __tests__/ --fix"
@@ -25,12 +25,13 @@
   "homepage": "https://github.com/freddiefujiwara/kilo-editor#readme",
   "dependencies": {},
   "devDependencies": {
-    "eslint": "^7.12.1",
-    "eslint-config-eslint": "^6.0.0",
-    "eslint-plugin-jest": "^24.1.0",
-    "eslint-plugin-jsdoc": "^30.7.6",
+    "@vitest/coverage-v8": "^2.1.4",
+    "eslint": "^8.57.0",
+    "eslint-config-eslint": "^8.0.0",
+    "eslint-plugin-jsdoc": "^48.11.0",
     "eslint-plugin-node": "^11.1.0",
-    "jest": "^26.6.1",
-    "jsdoc": "^3.6.6"
+    "eslint-plugin-vitest": "^0.5.4",
+    "jsdoc": "^4.0.3",
+    "vitest": "^2.1.4"
   }
 }

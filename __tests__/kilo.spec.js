@@ -591,7 +591,7 @@ describe("Kilo", () => {
         expect(variables.k.editorSetStatusMessage).toBeInstanceOf(Function);
         variables.k.editorSetStatusMessage("BYE");
         expect(variables.k.E.statusmsg).toBe("BYE");
-        jest.runAllTimers();
+        vi.runAllTimers();
         expect(variables.k.E.statusmsg).toBe("");
     });
     it(" editorDrawMessageBar() : can draw lines", () => {
@@ -739,25 +739,25 @@ describe("Kilo", () => {
         variables.k.main();
     });
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
         variables.k = new Kilo(["LICENSE"]);
 
-        console.error = jest.fn();
-        process.exit = jest.fn();
-        process.stdout.cursorTo = jest.fn();
-        process.stdout.clearScreenDown = jest.fn();
+        console.error = vi.fn();
+        process.exit = vi.fn();
+        process.stdout.cursorTo = vi.fn();
+        process.stdout.clearScreenDown = vi.fn();
         process.stdin.isTTY = true;
-        process.stdin.setRawMode = jest.fn();
-        process.stdin.resume = jest.fn();
-        process.stdout.write = jest.fn();
-        process.stdout.on = jest.fn();
-        process.stdin.on = jest.fn();
+        process.stdin.setRawMode = vi.fn();
+        process.stdin.resume = vi.fn();
+        process.stdout.write = vi.fn();
+        process.stdout.on = vi.fn();
+        process.stdin.on = vi.fn();
         process.stdout.rows = 10;
         process.stdout.columns = 10;
     });
     afterEach(() => {
-        jest.runOnlyPendingTimers();
-        jest.useRealTimers();
+        vi.runOnlyPendingTimers();
+        vi.useRealTimers();
         delete variables.k;
     });
     beforeAll(() => {
