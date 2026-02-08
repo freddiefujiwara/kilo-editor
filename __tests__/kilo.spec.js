@@ -3,6 +3,7 @@ const Kilo = require("../src/kilo");
 
 describe("Kilo", () => {
     const variables = {};
+    let setTimeoutSpy;
 
     it(" constructor() : can create new instance", () => {
         expect(variables.k).not.toBeNull();
@@ -740,6 +741,7 @@ describe("Kilo", () => {
     });
     beforeEach(() => {
         vi.useFakeTimers();
+        setTimeoutSpy = vi.spyOn(global, "setTimeout");
         variables.k = new Kilo(["LICENSE"]);
 
         console.error = vi.fn();
@@ -758,6 +760,8 @@ describe("Kilo", () => {
     afterEach(() => {
         vi.runOnlyPendingTimers();
         vi.useRealTimers();
+        setTimeoutSpy?.mockRestore();
+        setTimeoutSpy = null;
         delete variables.k;
     });
     beforeAll(() => {
