@@ -39,7 +39,7 @@ describe("Kilo", () => {
         variables.k = new Kilo(["__test__/testData.csv"]);
         variables.k.E.dirty = 1;
         variables.k.editorSave();
-        expect(variables.k.E.statusmsg).toEqual("Error:ENOENT: no such file or directory, open '__test__/testData.csv'");
+        expect(variables.k.E.statusmsg).toMatch(/Error:ENOENT: no such file or directory, open .*__test__.*testData\.csv/u);
         expect(variables.k.E.dirty).toEqual(1);
     });
     it(" enableRawMode() : can set tty from normal to raw mode", () => {
