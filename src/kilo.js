@@ -293,7 +293,7 @@ class Kilo {
         this.editorDrawMessageBar();
         this.abuf += `\x1b[${(this.E.cy - this.E.rowoff) + 1};${(this.E.rx - this.E.coloff) + 1}H`; // set cursor position
         this.abuf += "\x1b[?25h"; // show cursor
-        process.stdout.write(this.abuf, this.abuf.length);
+        process.stdout.write(this.abuf);
         this.abuf = "";
     }
 
