@@ -3,6 +3,7 @@ const Kilo = require("../src/kilo");
 
 describe("Kilo", () => {
     const variables = {};
+    let setTimeoutSpy;
 
     it(" constructor() : can create new instance", () => {
         expect(variables.k).not.toBeNull();
@@ -38,7 +39,7 @@ describe("Kilo", () => {
         variables.k = new Kilo(["__test__/testData.csv"]);
         variables.k.E.dirty = 1;
         variables.k.editorSave();
-        expect(variables.k.E.statusmsg).toEqual("Error:ENOENT: no such file or directory, open '__test__/testData.csv'");
+        expect(variables.k.E.statusmsg).toMatch(/Error:ENOENT: no such file or directory, open .*__test__.*testData\.csv/u);
         expect(variables.k.E.dirty).toEqual(1);
     });
     it(" enableRawMode() : can set tty from normal to raw mode", () => {
@@ -591,7 +592,7 @@ describe("Kilo", () => {
         expect(variables.k.editorSetStatusMessage).toBeInstanceOf(Function);
         variables.k.editorSetStatusMessage("BYE");
         expect(variables.k.E.statusmsg).toBe("BYE");
-        jest.runAllTimers();
+        vi.runAllTimers();
         expect(variables.k.E.statusmsg).toBe("");
     });
     it(" editorDrawMessageBar() : can draw lines", () => {
@@ -739,25 +740,30 @@ describe("Kilo", () => {
         variables.k.main();
     });
     beforeEach(() => {
-        jest.useFakeTimers();
+        vi.useFakeTimers();
+        setTimeoutSpy = vi.spyOn(global, "setTimeout");
         variables.k = new Kilo(["LICENSE"]);
 
-        console.error = jest.fn();
-        process.exit = jest.fn();
-        process.stdout.cursorTo = jest.fn();
-        process.stdout.clearScreenDown = jest.fn();
+        console.error = vi.fn();
+        process.exit = vi.fn();
+        process.stdout.cursorTo = vi.fn();
+        process.stdout.clearScreenDown = vi.fn();
         process.stdin.isTTY = true;
-        process.stdin.setRawMode = jest.fn();
-        process.stdin.resume = jest.fn();
-        process.stdout.write = jest.fn();
-        process.stdout.on = jest.fn();
-        process.stdin.on = jest.fn();
+        process.stdin.setRawMode = vi.fn();
+        process.stdin.resume = vi.fn();
+        process.stdout.write = vi.fn();
+        process.stdout.on = vi.fn();
+        process.stdin.on = vi.fn();
         process.stdout.rows = 10;
         process.stdout.columns = 10;
     });
     afterEach(() => {
-        jest.runOnlyPendingTimers();
-        jest.useRealTimers();
+        vi.runOnlyPendingTimers();
+        vi.useRealTimers();
+        if (setTimeoutSpy) {
+            setTimeoutSpy.mockRestore();
+        }
+        setTimeoutSpy = null;
         delete variables.k;
     });
     beforeAll(() => {
