@@ -33,6 +33,7 @@ const fs = require("fs");
 const os = require("os");
 const KILO_TAB_STOP = 8;
 const MULTI_BYTE = 2;
+const STATUS_MSG_TIMEOUT = 5000;
 const SEARCHABLE_CHARS = /^[\ta-z0-9!"#$%&amp;'()*+,./:;&lt;=>?@[\]\\ ^_`{|}~-]$/ui;
 const MODE = { NORMAL: 0, INSERT: 1, SEARCH: 2, COMMAND: 3 };
 
@@ -71,7 +72,7 @@ class Kilo {
             this.E.filename = argv[0];
         }
         this.editorSetStatusMessage("HELP): k:up/j:down/l:right/h:left | i:insert | /:search | :w save/ :q quit/ :wq save &amp; quit");
-        this.backup = {}; // for undo
+        this._saveStateForUndo();
         this.mode = MODE.NORMAL; // mode;
         this.sx = [];// searched cursor position x
         this.sy = []; // searched cursor position y
@@ -165,7 +166,7 @@ class Kilo {
         this.E.statusmsg = message;
         setTimeout(() => {
             this.E.statusmsg = "";
-        }, 5000);
+        }, STATUS_MSG_TIMEOUT);
     }
 
     /**
@@ -184,7 +185,7 @@ class Kilo {
      * @returns {void}
      */
     editorInsertChar(c) {
-        this.backup = JSON.stringify(this.E);
+        this._saveStateForUndo();
         if (this.E.cy === this.E.erow.length) {
             this.editorInsertRow();
         }
@@ -208,7 +209,7 @@ class Kilo {
      * @returns {void}
      */
     editorInsertRow(insert) {
-        this.backup = JSON.stringify(this.E);
+        this._saveStateForUndo();
         this.E.erow.splice(this.E.cy, 0, insert || "");
         this.E.dirty++;
     }
@@ -338,127 +339,179 @@ class Kilo {
             } else {
                 let command = "";
 
-                if (this.mode === MODE.NORMAL) {
-                    if (typeof key.name === "undefined") { // not insert and not alphabet
-                        switch (key.sequence) {
-                            case "$":
-                                this.editorMoveCursor("end");
-                                break;
-                            case "^":
-                                this.editorMoveCursor("home");
-                                break;
-                            case "/":
-                                this.mode = MODE.SEARCH;
-                                this.sx = [];
-                                this.sy = [];
-                                this.scbuf = "";
-                                this.si = 0;
-                                command = `/${this.scbuf}`;
-                                break;
-                            case ":":
-                                this.mode = MODE.COMMAND;
-                                this.scbuf = "";
-                                command = `:${this.scbuf}`;
-                                break;
-                            default:
-                                break;
+                switch (this.mode) {
+                    case MODE.NORMAL:
+                        command = this._handleNormalMode(key);
+                        break;
+                    case MODE.INSERT:
+                        command = this._handleInsertMode(key);
+                        break;
+                    case MODE.SEARCH:
+                        command = this._handleSearchMode(key);
+                        break;
+                    case MODE.COMMAND:
+                        command = this._handleCommandMode(key);
+                        if (command === null) {
+                            return;
                         }
-                    } else { // not insert and alphabet
-                        this.editorMoveCursor(key.name, key.sequence);
-                    }
-                    this.prev = key.name;
-                } else if (this.mode === MODE.INSERT) { // insert mode
-                    if (SEARCHABLE_CHARS.test(key.sequence)) {
-                        this.editorInsertChar(key.sequence);
-                    } else if (key.name === "return") {
-                        this.editorInsertRow();
-                        this.editorMoveCursor("home");
-                        this.editorMoveCursor("down");
-                        this.editorUpdateRow();
-                    } else {
-                        this.editorMoveCursor(key.name, key.sequence);
-                    }
-                } else if (this.mode === MODE.SEARCH) {
-                    switch (key.name) {
-                        case "return":
-                            this.mode = MODE.NORMAL;
-                        case "backspace":
-                        case "delete":
-                            this.scbuf = "";
-                            break;
-                        case "right":
-                        case "up":
-                            this.si = (this.si + 1) % this.sx.length;
-                            break;
-                        case "left":
-                        case "down":
-                            this.si--;
-                            if (this.si &lt; 0) {
-                                this.si = this.sx.length - 1;
-                            }
-                            break;
-                        default:
-                            if (SEARCHABLE_CHARS.test(key.sequence)) {
-                                this.scbuf += key.sequence;
-                                this.sx = [];
-                                this.sy = [];
-                                this.si = 0;
-                                this.E.erow.forEach((r, y) => {
-                                    [...r.matchAll(new RegExp(this.scbuf.replace(/[.*+?^${}()|[\]\\]/ug, "\\$&amp;"), "ugi"))].forEach(m => {
-                                        this.sx.push(m.index);
-                                        this.sy.push(y);
-                                    });
-                                });
-                            }
-                    }
-                    if (this.sx.length > this.si) {
-                        this.E.cx = this.sx[this.si];
-                        this.E.cy = this.sy[this.si];
-                    }
-                    command = `/${this.scbuf} (${this.sx.length}) found &lt;-prev:next->)`;
-                } else if (this.mode === MODE.COMMAND) {
-                    if (key.name === "return") {
-                        switch (this.scbuf) {
-                            case "w":
-                                this.editorSave();
-                                this.editorRefreshScreen();
-                                this.scbuf = "";
-                                return;
-                            case "wq":
-                                this.editorSave();
-                                this.editorRefreshScreen();
-                                this.die("BYE", 0);
-                                this.scbuf = "";
-                                return;
-                            case "q":
-                                this.die("BYE", 0);
-                                break;
-                            default:
-                                break;
-                        }
-                        this.scbuf = "";
-                        command = `:${this.scbuf}`;
-                    } else if (key.name === "delete" || key.name === "backspace") {
-                        if (this.scbuf.length &lt;= 0) {
-                            this.mode = MODE.NORMAL;
-                            command = "";
-                        } else {
-                            this.scbuf = this.scbuf.slice(0, -1);
-                            command = `:${this.scbuf}`;
-                        }
-                    } else if (SEARCHABLE_CHARS.test(key.sequence)) {
-                        this.scbuf += key.sequence;
-                        command = `:${this.scbuf}`;
-                    }
+                        break;
+                    default:
+                        break;
                 }
-
                 this.editorSetStatusMessage(`${command} (${this.E.cx}:${this.E.cy})  -- ${Object.keys(MODE)[this.mode]} --`);
             }
-
             this.editorRefreshScreen();
         } catch (e) {
             this.die(e);
         }
+    }
+
+    /**
+     * handle normal mode key action
+     * @param {Object} key captured key information
+     * @returns {string} command status message
+     */
+    _handleNormalMode(key) {
+        let command = "";
+
+        if (typeof key.name === "undefined") {
+            switch (key.sequence) {
+                case "$":
+                    this.editorMoveCursor("end");
+                    break;
+                case "^":
+                    this.editorMoveCursor("home");
+                    break;
+                case "/":
+                    this.mode = MODE.SEARCH;
+                    this.sx = [];
+                    this.sy = [];
+                    this.scbuf = "";
+                    this.si = 0;
+                    command = `/${this.scbuf}`;
+                    break;
+                case ":":
+                    this.mode = MODE.COMMAND;
+                    this.scbuf = "";
+                    command = `:${this.scbuf}`;
+                    break;
+                default:
+                    break;
+            }
+        } else {
+            this.editorMoveCursor(key.name, key.sequence);
+        }
+        this.prev = key.name;
+        return command;
+    }
+
+    /**
+     * handle insert mode key action
+     * @param {Object} key captured key information
+     * @returns {string} command status message
+     */
+    _handleInsertMode(key) {
+        if (SEARCHABLE_CHARS.test(key.sequence)) {
+            this.editorInsertChar(key.sequence);
+        } else if (key.name === "return") {
+            this.editorInsertRow();
+            this.editorMoveCursor("home");
+            this.editorMoveCursor("down");
+            this.editorUpdateRow();
+        } else {
+            this.editorMoveCursor(key.name, key.sequence);
+        }
+        return "";
+    }
+
+    /**
+     * handle search mode key action
+     * @param {Object} key captured key information
+     * @returns {string} command status message
+     */
+    _handleSearchMode(key) {
+        switch (key.name) {
+            case "return":
+                this.mode = MODE.NORMAL;
+                // fall through
+            case "backspace":
+            case "delete":
+                this.scbuf = "";
+                break;
+            case "right":
+            case "up":
+                this.si = (this.si + 1) % this.sx.length;
+                break;
+            case "left":
+            case "down":
+                this.si--;
+                if (this.si &lt; 0) {
+                    this.si = this.sx.length - 1;
+                }
+                break;
+            default:
+                if (SEARCHABLE_CHARS.test(key.sequence)) {
+                    this.scbuf += key.sequence;
+                    this.sx = [];
+                    this.sy = [];
+                    this.si = 0;
+                    this.E.erow.forEach((r, y) => {
+                        const matches = [...r.matchAll(new RegExp(this.scbuf.replace(/[.*+?^${}()|[\]\\]/ug, "\\$&amp;"), "ugi"))];
+
+                        matches.forEach(m => {
+                            this.sx.push(m.index);
+                            this.sy.push(y);
+                        });
+                    });
+                }
+        }
+        if (this.sx.length > this.si) {
+            this.E.cx = this.sx[this.si];
+            this.E.cy = this.sy[this.si];
+        }
+        return `/${this.scbuf} (${this.sx.length}) found &lt;-prev:next->)`;
+    }
+
+    /**
+     * handle command mode key action
+     * @param {Object} key captured key information
+     * @returns {string} command status message
+     */
+    _handleCommandMode(key) {
+        if (key.name === "return") {
+            switch (this.scbuf) {
+                case "w":
+                    this.editorSave();
+                    this.editorRefreshScreen();
+                    this.scbuf = "";
+                    return null;
+                case "wq":
+                    this.editorSave();
+                    this.editorRefreshScreen();
+                    this.die("BYE", 0);
+                    this.scbuf = "";
+                    return null;
+                case "q":
+                    this.die("BYE", 0);
+                    this.scbuf = "";
+                    return null;
+                default:
+                    break;
+            }
+            this.scbuf = "";
+            return `:${this.scbuf}`;
+        } else if (key.name === "delete" || key.name === "backspace") {
+            if (this.scbuf.length &lt;= 0) {
+                this.mode = MODE.NORMAL;
+                return "";
+            }
+            this.scbuf = this.scbuf.slice(0, -1);
+            return `:${this.scbuf}`;
+        } else if (SEARCHABLE_CHARS.test(key.sequence)) {
+            this.scbuf += key.sequence;
+            return `:${this.scbuf}`;
+        }
+        return `:${this.scbuf}`;
     }
 
     /**
@@ -491,117 +544,55 @@ class Kilo {
                 }
                 break;
             case "backspace":
-                this.editorMoveCursor("left");
             case "delete":
             case "x":
-                this.backup = JSON.stringify(this.E);
-                this.editorDelChar();
-                if (row !== false &amp;&amp; row.length === 0) {
-                    this.editorMoveCursor("down");
-                }
+                this._handleDeleteChar(name, row);
                 break;
             case "a":
                 this.editorMoveCursor("right");
+                // fall through
             case "insert":
             case "i":
-                this.mode = MODE.INSERT;
-                this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - -- INSERT --`);
-                this.editorRefreshScreen();
+                this._handleEnterInsertMode();
                 break;
             case "o":
-                if (sequence === "O") {
-                    this.editorInsertRow();
-                    this.E.cx = 0;
-                    this.editorUpdateRow();
-                } else {
-                    this.editorMoveCursor("down");
-                    this.editorInsertRow();
-                    this.E.cx = 0;
-                    this.editorUpdateRow();
-                }
-                this.mode = MODE.INSERT;
+                this._handleOpenLine(sequence);
                 break;
             case "u":
-                {
-                    const backupu = this.E;
-
-                    this.E = JSON.parse(this.backup);
-                    this.backup = JSON.stringify(backupu);
-                }
+                this._handleUndo();
                 break;
             case "y":
-                if (row !== false &amp;&amp; this.prev === "y") { // yy yank
-                    this.ybuf = row;
-                }
+                this._handleYank(row);
                 break;
             case "g":
-                if (sequence === "G") {
-                    this.E.cx = 0;
-                    this.E.cy = this.E.erow.length > 0 ? this.E.erow.length - 1 : 0;
-                } else if (this.prev === "g") { // gg  to top
-                    this.E.cx = 0;
-                    this.E.cy = 0;
-                }
+                this._handleJumpToLine(sequence);
                 break;
             case "d":
-                if (row !== false) { // dd delete a row
-                    if (this.prev === "d") { // dd delete a row
-                        this.backup = JSON.stringify(this.E);
-                        this.E.cx = 0;
-                        this.ybuf = row;
-                        [...Array(row.length)].map(() => this.editorDelChar());
-                    } else if (sequence === "D") {
-                        this.backup = JSON.stringify(this.E);
-                        [...Array(row.length - this.E.cx)].map(() => this.editorDelChar());
-                    }
-                }
+                this._handleDeleteRow(row, sequence);
                 break;
             case "p":
-                this.editorMoveCursor("down");
-                this.editorInsertRow(this.ybuf);
-                this.editorUpdateRow();
+                this._handlePaste();
                 break;
             case "pageup":
-                this.E.cy = this.E.rowoff;
             case "pagedown":
-                if (name === "pagedown") {
-                    this.E.cy = this.E.rowoff + this.E.screenrows - 1;
-                    if (this.E.cy > this.E.erow.length) {
-                        this.E.cy = this.E.erow.length;
-                    }
-                }
-                [...Array(this.E.screenrows)].map(() => this.editorMoveCursor(name === "pageup" ? "up" : "down"));
+                this._handlePageJump(name);
                 break;
             case "h":
             case "left":
-                if (this.E.cx > 0) {
-                    this.E.cx--;
-                } else if (this.E.cy > 0) {
-                    this.E.cy--;
-                    this.E.cx = this.E.erow[this.E.cy].length;
-                }
+                this._moveLeft();
                 break;
             case "l":
             case "right":
-                if (row &amp;&amp; this.E.cx &lt; row.length) {
-                    this.E.cx++;
-                } else if (row !== false &amp;&amp; this.E.cx === row.length) {
-                    this.E.cy++;
-                    this.E.cx = 0;
-                }
+                this._moveRight(row);
                 break;
             case "k":
             case "up":
-                if (this.E.cy > 0) {
-                    this.E.cy--;
-                }
+                this._moveUp();
                 break;
             case "j":
             case "down":
             case "return":
-                if (this.E.cy &lt; this.E.erow.length) {
-                    this.E.cy++;
-                }
+                this._moveDown();
                 break;
             default:
                 break;
@@ -614,27 +605,227 @@ class Kilo {
     }
 
     /**
+     * save current state for undo
+     * @returns {void}
+     */
+    _saveStateForUndo() {
+        this.backup = JSON.stringify(this.E);
+    }
+
+    /**
+     * handle undo action
+     * @returns {void}
+     */
+    _handleUndo() {
+        if (this.backup === "") {
+            return;
+        }
+        const backupu = this.E;
+
+        this.E = JSON.parse(this.backup);
+        this.backup = JSON.stringify(backupu);
+    }
+
+    /**
+     * handle yank action
+     * @param {string|boolean} row current row content
+     * @returns {void}
+     */
+    _handleYank(row) {
+        if (row !== false &amp;&amp; this.prev === "y") {
+            this.ybuf = row;
+        }
+    }
+
+    /**
+     * handle paste action
+     * @returns {void}
+     */
+    _handlePaste() {
+        this.editorMoveCursor("down");
+        this.editorInsertRow(this.ybuf);
+        this.editorUpdateRow();
+    }
+
+    /**
+     * handle delete char action
+     * @param {string} name key name
+     * @param {string|boolean} row current row content
+     * @returns {void}
+     */
+    _handleDeleteChar(name, row) {
+        if (name === "backspace") {
+            this._moveLeft();
+        }
+        this._saveStateForUndo();
+        this.editorDelChar();
+        if (row !== false &amp;&amp; row.length === 0) {
+            this._moveDown();
+        }
+    }
+
+    /**
+     * handle enter insert mode action
+     * @returns {void}
+     */
+    _handleEnterInsertMode() {
+        this.mode = MODE.INSERT;
+        this.editorSetStatusMessage(`(${this.E.cx}:${this.E.cy}) - -- INSERT --`);
+        this.editorRefreshScreen();
+    }
+
+    /**
+     * handle open line action
+     * @param {string} sequence key sequence
+     * @returns {void}
+     */
+    _handleOpenLine(sequence) {
+        if (sequence === "O") {
+            this.editorInsertRow();
+        } else {
+            this._moveDown();
+            this.editorInsertRow();
+        }
+        this.E.cx = 0;
+        this.editorUpdateRow();
+        this.mode = MODE.INSERT;
+    }
+
+    /**
+     * handle jump to line action (gg or G)
+     * @param {string} sequence key sequence
+     * @returns {void}
+     */
+    _handleJumpToLine(sequence) {
+        if (sequence === "G") {
+            this.E.cx = 0;
+            this.E.cy = this.E.erow.length > 0 ? this.E.erow.length - 1 : 0;
+        } else if (this.prev === "g") {
+            this.E.cx = 0;
+            this.E.cy = 0;
+        }
+    }
+
+    /**
+     * handle delete row action (dd or D)
+     * @param {string|boolean} row current row content
+     * @param {string} sequence key sequence
+     * @returns {void}
+     */
+    _handleDeleteRow(row, sequence) {
+        if (row !== false) {
+            if (this.prev === "d") {
+                this._saveStateForUndo();
+                this.E.cx = 0;
+                this.ybuf = row;
+                [...Array(row.length)].forEach(() => this.editorDelChar());
+            } else if (sequence === "D") {
+                this._saveStateForUndo();
+                [...Array(row.length - this.E.cx)].forEach(() => this.editorDelChar());
+            }
+        }
+    }
+
+    /**
+     * handle page jump action
+     * @param {string} name key name
+     * @returns {void}
+     */
+    _handlePageJump(name) {
+        if (name === "pageup") {
+            this.E.cy = this.E.rowoff;
+        } else {
+            this.E.cy = this.E.rowoff + this.E.screenrows - 1;
+            if (this.E.cy > this.E.erow.length) {
+                this.E.cy = this.E.erow.length;
+            }
+        }
+        [...Array(this.E.screenrows)].forEach(() => this.editorMoveCursor(name === "pageup" ? "up" : "down"));
+    }
+
+    /**
+     * move cursor left
+     * @returns {void}
+     */
+    _moveLeft() {
+        if (this.E.cx > 0) {
+            this.E.cx--;
+        } else if (this.E.cy > 0) {
+            this.E.cy--;
+            this.E.cx = this.E.erow[this.E.cy].length;
+        }
+    }
+
+    /**
+     * move cursor right
+     * @param {string|boolean} row current row content
+     * @returns {void}
+     */
+    _moveRight(row) {
+        if (row &amp;&amp; this.E.cx &lt; row.length) {
+            this.E.cx++;
+        } else if (row !== false &amp;&amp; this.E.cx === row.length) {
+            this.E.cy++;
+            this.E.cx = 0;
+        }
+    }
+
+    /**
+     * move cursor up
+     * @returns {void}
+     */
+    _moveUp() {
+        if (this.E.cy > 0) {
+            this.E.cy--;
+        }
+    }
+
+    /**
+     * move cursor down
+     * @returns {void}
+     */
+    _moveDown() {
+        if (this.E.cy &lt; this.E.erow.length) {
+            this.E.cy++;
+        }
+    }
+
+    /**
+     * get left status message
+     * @returns {string} left status message
+     */
+    _getStatusLeft() {
+        const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty > 0 ? "(modified)" : ""}`;
+
+        return status.slice(0, this.E.screencols);
+    }
+
+    /**
+     * get right status message
+     * @returns {string} right status message
+     */
+    _getStatusRight() {
+        return `${parseInt((this.E.cy + 1) / this.E.erow.length * 100, 10)}% ${this.E.cy + 1}/${this.E.erow.length}`;
+    }
+
+    /**
      * drow status bar
      * @returns {void}
      */
     editorDrawStatusBar() {
         this.abuf += "\x1b[7m"; // invert the colors. (usually black -> white)
-        const status = `${this.E.filename ? this.E.filename : "[No Name]"} - ${this.E.erow.length} lines ${this.E.dirty > 0 ? "(modified)" : ""}`;
-        const rstatus = `${parseInt((this.E.cy + 1) / this.E.erow.length * 100, 10)}% ${this.E.cy + 1}/${this.E.erow.length}`;
-        let len = status.length;
+        const left = this._getStatusLeft();
+        const right = this._getStatusRight();
+        let len = left.length;
 
-        if (len > this.E.screencols) {
-            len = this.E.screencols;
-        }
-        this.abuf += status.slice(0, len);
+        this.abuf += left;
         while (len &lt; this.E.screencols) {
-            if (this.E.screencols - len === rstatus.length) {
-                this.abuf += rstatus;
+            if (this.E.screencols - len === right.length) {
+                this.abuf += right;
                 break;
-            } else {
-                this.abuf += " ";
-                len++;
             }
+            this.abuf += " ";
+            len++;
         }
         this.abuf += "\x1b[m"; // revert the colors. (usually white -> black)
         this.abuf += os.EOL;
@@ -650,34 +841,41 @@ class Kilo {
     }
 
     /**
+     * draw welcome message
+     * @returns {void}
+     */
+    _drawWelcomeMessage() {
+        const welcome = `Kilo editor -- version ${pkg.version}`;
+        let welcomelen = welcome.length;
+
+        if (welcomelen > this.E.screencols) {
+            welcomelen = this.E.screencols;
+        }
+        let padding = parseInt((this.E.screencols - welcomelen) / 2, 10);
+
+        if (padding > 0) {
+            this.abuf += "~";
+            padding--;
+        }
+        while (padding-- > 0) {
+            this.abuf += " ";
+        }
+        this.abuf += welcome.slice(0, welcomelen);
+    }
+
+    /**
      * drow file contents
      * @returns {void}
      */
     editorDrawRows() {
-        [...Array(this.E.screenrows)].forEach((_, y) => {
+        for (let y = 0; y &lt; this.E.screenrows; y++) {
             const filerow = y + this.E.rowoff;
 
             if (filerow >= this.E.erow.length) {
                 if (this.E.erow.length === 0 &amp;&amp; y === parseInt(this.E.screenrows / 3, 10)) {
-                    const welcome = `Kilo editor -- version ${pkg.version}`;
-                    let welcomelen = welcome.length;
-
-                    if (welcomelen > this.E.screencols) {
-                        welcomelen = this.E.screencols;
-                    }
-                    let padding = parseInt((this.E.screencols - welcomelen) / 2, 10);
-
-                    if (padding > 0) {
-                        this.abuf += "~";
-                        padding--;
-                    }
-                    [...Array(padding)].forEach(() => {
-                        this.abuf += " ";
-                    });
-                    this.abuf += welcome;
+                    this._drawWelcomeMessage();
                 } else {
                     this.abuf += "~";
-
                 }
             } else {
                 const row = this.E.render[filerow];
@@ -690,12 +888,12 @@ class Kilo {
                     len = this.E.screencols;
                 }
 
-                // syntax high right
+                // syntax highlighting
                 this.abuf += Kilo.editorUpdateSyntax(row.slice(this.E.coloff, this.E.coloff + len));
             }
             this.abuf += "\x1b[K"; // remove all chars after the cursor position
             this.abuf += os.EOL;
-        });
+        }
     }
 
     /**
@@ -762,7 +960,7 @@ if (typeof module !== "undefined") {
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Sun Feb 08 2026 01:30:41 GMT+0000 (Coordinated Universal Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Sun Feb 08 2026 01:45:32 GMT+0000 (Coordinated Universal Time)
 </footer>
 
 <script> prettyPrint(); </script>
