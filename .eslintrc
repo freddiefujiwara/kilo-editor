@@ -3,7 +3,7 @@
   "env": {
     "vitest/globals": true
   },
-  "extends" : ["eslint"],
+  "extends" : ["eslint:recommended", "plugin:vitest/recommended"],
   "rules": {
     "no-console":0,
     "no-process-exit":0,
